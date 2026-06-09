@@ -11,6 +11,7 @@ import {
 } from '@/lib/products-api';
 import type { Product } from '@/types/product';
 import type { Category } from '@/types/category';
+import type { Manufacturer } from '@/types/manufacturer';
 import { IClose } from '@/components/icons';
 import FormField from '@/components/ui/FormField';
 import ImageUploader from './ImageUploader';
@@ -37,11 +38,18 @@ type FormValues = z.infer<typeof productSchema>;
 interface Props {
   product: Product | null;
   categories: Category[];
+  manufacturers: Manufacturer[];
   onClose: () => void;
   onSaved: () => void;
 }
 
-export default function ProductFormModal({ product, categories, onClose, onSaved }: Props) {
+export default function ProductFormModal({
+  product,
+  categories,
+  manufacturers,
+  onClose,
+  onSaved,
+}: Props) {
   const isEdit = !!product;
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -80,12 +88,18 @@ export default function ProductFormModal({ product, categories, onClose, onSaved
     setSubmitting(true);
     setSubmitError(null);
     try {
+      // manufacturer rỗng -> undefined để DTO @IsMongoId skip (vì có @IsOptional)
+      const payload = {
+        ...values,
+        manufacturer: values.manufacturer?.trim() ? values.manufacturer : undefined,
+      };
+
       let savedId: string;
       if (isEdit && product) {
-        const updated = await updateProduct(product._id, values);
+        const updated = await updateProduct(product._id, payload);
         savedId = updated._id;
       } else {
-        const created = await createProduct(values);
+        const created = await createProduct(payload);
         savedId = created._id;
       }
 
@@ -198,11 +212,23 @@ export default function ProductFormModal({ product, categories, onClose, onSaved
             </FormField>
 
             <FormField label="Nhà sản xuất" error={errors.manufacturer?.message}>
-              <input
-                {...register('manufacturer')}
-                placeholder="Vd: Đầu Trâu"
-                className="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
-              />
+              {manufacturers.length === 0 ? (
+                <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                  Chưa có nhà sản xuất. Hãy tạo trước ở trang Nhà sản xuất.
+                </div>
+              ) : (
+                <select
+                  {...register('manufacturer')}
+                  className="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
+                >
+                  <option value="">— Không chọn —</option>
+                  {manufacturers.map((m) => (
+                    <option key={m._id} value={m._id}>
+                      {m.name}
+                    </option>
+                  ))}
+                </select>
+              )}
             </FormField>
 
             <FormField label="Mô tả" error={errors.description?.message} colSpan={2}>

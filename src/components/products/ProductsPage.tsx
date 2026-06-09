@@ -8,8 +8,10 @@ import {
   softDeleteProduct,
 } from '@/lib/products-api';
 import { listCategories } from '@/lib/categories-api';
+import { listManufacturers } from '@/lib/manufacturers-api';
 import type { Product } from '@/types/product';
 import type { Category } from '@/types/category';
+import type { Manufacturer } from '@/types/manufacturer';
 import {
   IPlus,
   IPencil,
@@ -33,6 +35,7 @@ function fmt(n: number) {
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
@@ -58,6 +61,15 @@ export default function ProductsPage() {
     }
   }, []);
 
+  const fetchManufacturers = useCallback(async () => {
+    try {
+      const list = await listManufacturers(true);
+      setManufacturers(list);
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
+
   const fetchProducts = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -78,7 +90,8 @@ export default function ProductsPage() {
 
   useEffect(() => {
     fetchCategories();
-  }, [fetchCategories]);
+    fetchManufacturers();
+  }, [fetchCategories, fetchManufacturers]);
 
   useEffect(() => {
     const id = setTimeout(fetchProducts, 300);
@@ -177,7 +190,7 @@ export default function ProductsPage() {
         <StatCard label="Đang ẩn" value={totalHidden} hint="Soft delete" tone="hidden" />
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-gray-100 bg-white px-4 py-3 shadow-sm">
+      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-sm">
         <div className="relative flex-1 min-w-[200px]">
           <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
             <ISearch />
@@ -219,9 +232,9 @@ export default function ProductsPage() {
         </p>
       )}
 
-      <div className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-100">
+          <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50/70">
               <tr>
                 <Th>Ảnh</Th>
@@ -233,7 +246,7 @@ export default function ProductsPage() {
                 <Th align="right">Hành động</Th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-200">
               {loading && (
                 <tr>
                   <td colSpan={7} className="px-4 py-10 text-center text-sm text-gray-400">
@@ -263,56 +276,56 @@ export default function ProductsPage() {
                       className="transition hover:bg-emerald-50/40 animate-fade-in-up"
                       style={{ animationDelay: `${i * 30}ms` }}
                     >
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-2">
                         {p.images?.[0]?.url ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
                             src={p.images[0].url}
                             alt={p.name}
-                            className="h-12 w-12 rounded-lg border border-gray-100 object-cover"
+                            className="h-20 w-20 rounded-lg border border-gray-200 object-cover"
                           />
                         ) : (
-                          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-50 to-teal-100">
-                            <ILeaf size={24} />
+                          <div className="flex h-20 w-20 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-50 to-teal-100">
+                            <ILeaf size={40} />
                           </div>
                         )}
                       </td>
-                      <td className="max-w-xs px-4 py-3">
-                        <div className="truncate text-sm font-semibold text-gray-800">{p.name}</div>
+                      <td className="max-w-xs px-4 py-2">
+                        <div className="truncate text-base font-bold text-gray-800">{p.name}</div>
                         {p.manufacturer && (
-                          <div className="truncate text-xs text-gray-400">{p.manufacturer}</div>
+                          <div className="truncate text-sm text-gray-600">{p.manufacturer}</div>
                         )}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-2">
                         {cat ? (
-                          <span className="inline-flex rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#007e42]">
+                          <span className="inline-flex rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#007e42]">
                             {cat.name}
                           </span>
                         ) : (
                           <span className="text-xs italic text-gray-400">— không có —</span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-right text-sm font-bold tabular-nums text-[#007e42]">
+                      <td className="px-4 py-2 text-right text-sm font-bold tabular-nums text-[#007e42]">
                         {fmt(p.price)}
                       </td>
-                      <td className="px-4 py-3 text-right text-sm tabular-nums text-gray-700">
+                      <td className="px-4 py-2 text-right text-sm tabular-nums text-gray-700">
                         {p.stock}
                       </td>
-                      <td className="px-4 py-3 text-sm">
+                      <td className="px-4 py-2 text-sm">
                         {p.isActive ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#007e42]">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-[#007e42]">
                             <IEye />
                             Hiện
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-gray-500">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-gray-500">
                             <IEyeOff />
                             Ẩn
                           </span>
                         )}
                       </td>
-                      <td className="px-4 py-3">
-                        <div className="flex justify-end gap-1">
+                      <td className="px-4 py-2">
+                        <div className="flex justify-end gap-1 [&_button]:h-9 [&_button]:w-9 [&_svg]:h-4 [&_svg]:w-4">
                           <IconBtn title="Sửa" onClick={() => openEdit(p)}>
                             <IPencil />
                           </IconBtn>
@@ -350,6 +363,7 @@ export default function ProductsPage() {
         <ProductFormModal
           product={editing}
           categories={categories.filter((c) => c.isActive)}
+          manufacturers={manufacturers.filter((m) => m.isActive)}
           onClose={() => setModalOpen(false)}
           onSaved={() => {
             setModalOpen(false);

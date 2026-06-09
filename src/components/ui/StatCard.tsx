@@ -13,7 +13,7 @@ export default function StatCard({ label, value, hint, tone = 'default' }: StatC
         ? 'text-gray-500'
         : 'text-gray-900';
   return (
-    <div className="rounded-xl border border-gray-100 bg-white px-4 py-3 shadow-sm">
+    <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-sm">
       <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
         {label}
       </div>
