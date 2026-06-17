@@ -156,7 +156,7 @@ export default function CategoriesPage() {
         <StatCard label="Đang ẩn" value={totalHidden} hint="Soft delete" tone="hidden" />
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-gray-100 bg-white px-4 py-3 shadow-sm">
+      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-gray-300 bg-white px-4 py-3 shadow-sm">
         <div className="relative flex-1 min-w-[200px]">
           <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
             <ISearch />
@@ -166,7 +166,7 @@ export default function CategoriesPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Tìm danh mục theo tên, slug, mô tả..."
-            className="h-10 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-3 text-sm font-medium text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
+            className="h-10 w-full rounded-lg border border-gray-300 bg-white pl-10 pr-3 text-sm font-medium text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
           />
         </div>
       </div>
@@ -185,10 +185,10 @@ export default function CategoriesPage() {
         </p>
       )}
 
-      <div className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-xl border border-gray-300 bg-white shadow-sm">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-100">
-            <thead className="bg-gray-50/70">
+          <table className="min-w-full divide-y divide-gray-300">
+            <thead className="bg-[#007e42] [&_th]:text-white">
               <tr>
                 <Th>Tên danh mục</Th>
                 <Th>Slug</Th>
@@ -197,7 +197,7 @@ export default function CategoriesPage() {
                 <Th align="right">Hành động</Th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-300">
               {loading && (
                 <tr>
                   <td colSpan={5} className="px-4 py-10 text-center text-sm text-gray-400">

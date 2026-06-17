@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { createSubcategory, updateSubcategory } from '@/lib/subcategories-api';
@@ -9,6 +9,7 @@ import type { Subcategory } from '@/types/subcategory';
 import type { Category } from '@/types/category';
 import { IClose } from '@/components/icons';
 import FormField from '@/components/ui/FormField';
+import SelectMenu from '@/components/ui/SelectMenu';
 
 const subcategorySchema = z.object({
   name: z
@@ -58,6 +59,7 @@ export default function SubcategoryFormModal({
   const {
     register,
     handleSubmit,
+    control,
     setValue,
     getValues,
     watch,
@@ -124,7 +126,7 @@ export default function SubcategoryFormModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="relative flex max-h-[90vh] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-2xl animate-scale-up">
+      <div className="relative flex max-h-[90vh] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-gray-300 bg-white shadow-2xl animate-scale-up">
         <div
           className="flex items-center justify-between px-6 py-4 text-white"
           style={{ background: 'linear-gradient(135deg, #007e42 0%, #0a9d52 100%)' }}
@@ -150,19 +152,20 @@ export default function SubcategoryFormModal({
           <div className="grid grid-cols-1 gap-4 px-6 py-5">
             {/* Danh mục cha */}
             <FormField label="Danh mục cha *" error={errors.categoryId?.message}>
-              <select
-                {...register('categoryId')}
-                className="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
-              >
-                <option value="">-- Chọn danh mục cha --</option>
-                {categories
-                  .filter((c) => c.isActive)
-                  .map((c) => (
-                    <option key={c._id} value={c._id}>
-                      {c.name}
-                    </option>
-                  ))}
-              </select>
+              <Controller
+                control={control}
+                name="categoryId"
+                render={({ field }) => (
+                  <SelectMenu
+                    value={field.value ?? ''}
+                    onChange={field.onChange}
+                    placeholder="-- Chọn danh mục cha --"
+                    options={categories
+                      .filter((c) => c.isActive)
+                      .map((c) => ({ value: c._id, label: c.name }))}
+                  />
+                )}
+              />
             </FormField>
 
             {/* Tên */}
@@ -170,7 +173,7 @@ export default function SubcategoryFormModal({
               <input
                 {...register('name', { onBlur: handleNameBlur })}
                 placeholder="Vd: Thuốc trừ sâu"
-                className="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
+                className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
               />
             </FormField>
 
@@ -179,7 +182,7 @@ export default function SubcategoryFormModal({
               <input
                 {...register('slug')}
                 placeholder="Tự động sinh từ tên nếu để trống"
-                className="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 font-mono text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
+                className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 font-mono text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
               />
               <p className="mt-1 text-[11px] text-gray-400">
                 Chỉ chữ thường, số và dấu gạch ngang. Vd:{' '}
@@ -193,12 +196,12 @@ export default function SubcategoryFormModal({
                 rows={3}
                 {...register('description')}
                 placeholder="Mô tả ngắn về danh mục con (tùy chọn)..."
-                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
               />
             </FormField>
 
             {/* isActive */}
-            <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-gray-200 bg-emerald-50/40 px-3.5 py-2.5 text-sm text-gray-700 transition hover:border-[#007e42]/30 hover:bg-emerald-50">
+            <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-gray-300 bg-emerald-50/40 px-3.5 py-2.5 text-sm text-gray-700 transition hover:border-[#007e42]/30 hover:bg-emerald-50">
               <input
                 type="checkbox"
                 {...register('isActive')}
@@ -214,11 +217,11 @@ export default function SubcategoryFormModal({
             </div>
           )}
 
-          <div className="flex justify-end gap-2 border-t border-gray-100 bg-gray-50/60 px-6 py-4">
+          <div className="flex justify-end gap-2 border-t border-gray-300 bg-gray-50/60 px-6 py-4">
             <button
               type="button"
               onClick={onClose}
-              className="h-10 rounded-lg border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-700 transition hover:border-[#007e42]/30 hover:text-[#007e42]"
+              className="h-10 rounded-lg border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 transition hover:border-[#007e42]/30 hover:text-[#007e42]"
             >
               Hủy
             </button>

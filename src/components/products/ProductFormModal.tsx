@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
@@ -14,6 +14,7 @@ import type { Category } from '@/types/category';
 import type { Manufacturer } from '@/types/manufacturer';
 import { IClose } from '@/components/icons';
 import FormField from '@/components/ui/FormField';
+import SelectMenu from '@/components/ui/SelectMenu';
 import ImageUploader from './ImageUploader';
 
 const productSchema = z.object({
@@ -23,6 +24,11 @@ const productSchema = z.object({
     .max(200, 'Tên tối đa 200 ký tự'),
   description: z.string().optional(),
   price: z.number({ message: 'Giá phải là số' }).min(0, 'Giá không được âm'),
+  // Để trống = không giảm giá. Ô rỗng cho ra NaN, coi như "không giảm".
+  salePrice: z
+    .number({ message: 'Giá khuyến mãi phải là số' })
+    .min(0, 'Giá khuyến mãi không được âm')
+    .optional(),
   stock: z
     .number({ message: 'Tồn kho phải là số' })
     .int('Tồn kho phải là số nguyên')
@@ -31,9 +37,15 @@ const productSchema = z.object({
   manufacturer: z.string().optional(),
   usageInstructions: z.string().optional(),
   isActive: z.boolean().optional(),
-});
+}).refine(
+  (data) => data.salePrice == null || data.salePrice < data.price,
+  {
+    message: 'Giá khuyến mãi phải nhỏ hơn giá gốc',
+    path: ['salePrice'],
+  },
+);
 
-type FormValues = z.infer<typeof productSchema>;
+type FormValues = z.input<typeof productSchema>;
 
 interface Props {
   product: Product | null;
@@ -58,6 +70,7 @@ export default function ProductFormModal({
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(productSchema),
@@ -66,6 +79,7 @@ export default function ProductFormModal({
           name: product.name,
           description: product.description ?? '',
           price: product.price,
+          salePrice: product.salePrice ?? undefined,
           stock: product.stock,
           categoryId: product.categoryId,
           manufacturer: product.manufacturer ?? '',
@@ -88,9 +102,14 @@ export default function ProductFormModal({
     setSubmitting(true);
     setSubmitError(null);
     try {
+      // Ô giá khuyến mãi rỗng -> NaN -> gửi null để backend hiểu "không giảm giá"
+      const hasSale =
+        values.salePrice != null && !Number.isNaN(values.salePrice);
+
       // manufacturer rỗng -> undefined để DTO @IsMongoId skip (vì có @IsOptional)
       const payload = {
         ...values,
+        salePrice: hasSale ? values.salePrice : null,
         manufacturer: values.manufacturer?.trim() ? values.manufacturer : undefined,
       };
 
@@ -135,7 +154,7 @@ export default function ProductFormModal({
         onClick={onClose}
       />
 
-      <div className="relative flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-2xl animate-scale-up">
+      <div className="relative flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-gray-300 bg-white shadow-2xl animate-scale-up">
         <div
           className="flex items-center justify-between px-6 py-4 text-white"
           style={{ background: 'linear-gradient(135deg, #007e42 0%, #0a9d52 100%)' }}
@@ -166,7 +185,7 @@ export default function ProductFormModal({
               <input
                 {...register('name')}
                 placeholder="Vd: Phân NPK 16-16-8"
-                className="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
+                className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
               />
             </FormField>
 
@@ -176,7 +195,26 @@ export default function ProductFormModal({
                   type="number"
                   step="any"
                   {...register('price', { valueAsNumber: true })}
-                  className="h-10 w-full rounded-lg border border-gray-200 bg-white pl-3 pr-7 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
+                  className="h-10 w-full rounded-lg border border-gray-300 bg-white pl-3 pr-7 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
+                />
+                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-400">
+                  ₫
+                </span>
+              </div>
+            </FormField>
+
+            <FormField
+              label="Giá khuyến mãi"
+              error={errors.salePrice?.message}
+              hint="Để trống nếu không giảm giá"
+            >
+              <div className="relative">
+                <input
+                  type="number"
+                  step="any"
+                  placeholder="Vd: 149000"
+                  {...register('salePrice', { valueAsNumber: true })}
+                  className="h-10 w-full rounded-lg border border-gray-300 bg-white pl-3 pr-7 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
                 />
                 <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-400">
                   ₫
@@ -188,7 +226,7 @@ export default function ProductFormModal({
               <input
                 type="number"
                 {...register('stock', { valueAsNumber: true })}
-                className="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
+                className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
               />
             </FormField>
 
@@ -198,16 +236,21 @@ export default function ProductFormModal({
                   Chưa có danh mục. Hãy tạo danh mục trước ở trang Danh mục.
                 </div>
               ) : (
-                <select
-                  {...register('categoryId')}
-                  className="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
-                >
-                  {categories.map((c) => (
-                    <option key={c._id} value={c._id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
+                <Controller
+                  control={control}
+                  name="categoryId"
+                  render={({ field }) => (
+                    <SelectMenu
+                      value={field.value ?? ''}
+                      onChange={field.onChange}
+                      placeholder="Chọn danh mục"
+                      options={categories.map((c) => ({
+                        value: c._id,
+                        label: c.name,
+                      }))}
+                    />
+                  )}
+                />
               )}
             </FormField>
 
@@ -217,17 +260,24 @@ export default function ProductFormModal({
                   Chưa có nhà sản xuất. Hãy tạo trước ở trang Nhà sản xuất.
                 </div>
               ) : (
-                <select
-                  {...register('manufacturer')}
-                  className="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
-                >
-                  <option value="">— Không chọn —</option>
-                  {manufacturers.map((m) => (
-                    <option key={m._id} value={m._id}>
-                      {m.name}
-                    </option>
-                  ))}
-                </select>
+                <Controller
+                  control={control}
+                  name="manufacturer"
+                  render={({ field }) => (
+                    <SelectMenu
+                      value={field.value ?? ''}
+                      onChange={field.onChange}
+                      placeholder="— Không chọn —"
+                      options={[
+                        { value: '', label: '— Không chọn —' },
+                        ...manufacturers.map((m) => ({
+                          value: m._id,
+                          label: m.name,
+                        })),
+                      ]}
+                    />
+                  )}
+                />
               )}
             </FormField>
 
@@ -236,7 +286,7 @@ export default function ProductFormModal({
                 rows={3}
                 {...register('description')}
                 placeholder="Mô tả ngắn về sản phẩm..."
-                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
               />
             </FormField>
 
@@ -249,12 +299,12 @@ export default function ProductFormModal({
                 rows={3}
                 {...register('usageInstructions')}
                 placeholder="Cách dùng, liều lượng, lưu ý..."
-                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
               />
             </FormField>
 
             <div className="md:col-span-2">
-              <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-gray-200 bg-emerald-50/40 px-3.5 py-2.5 text-sm text-gray-700 transition hover:border-[#007e42]/30 hover:bg-emerald-50">
+              <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-gray-300 bg-emerald-50/40 px-3.5 py-2.5 text-sm text-gray-700 transition hover:border-[#007e42]/30 hover:bg-emerald-50">
                 <input
                   type="checkbox"
                   {...register('isActive')}
@@ -289,11 +339,11 @@ export default function ProductFormModal({
             </div>
           )}
 
-          <div className="flex justify-end gap-2 border-t border-gray-100 bg-gray-50/60 px-6 py-4">
+          <div className="flex justify-end gap-2 border-t border-gray-300 bg-gray-50/60 px-6 py-4">
             <button
               type="button"
               onClick={onClose}
-              className="h-10 rounded-lg border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-700 transition hover:border-[#007e42]/30 hover:text-[#007e42]"
+              className="h-10 rounded-lg border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 transition hover:border-[#007e42]/30 hover:text-[#007e42]"
             >
               Hủy
             </button>

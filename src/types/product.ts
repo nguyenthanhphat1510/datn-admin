@@ -8,6 +8,7 @@ export interface Product {
   name: string;
   description?: string;
   price: number;
+  salePrice?: number | null; // giá khuyến mãi, null = không giảm
   stock: number;
   categoryId: string; // ref Category._id
   manufacturer?: string;
@@ -22,6 +23,7 @@ export interface CreateProductDto {
   name: string;
   description?: string;
   price: number;
+  salePrice?: number | null;
   stock: number;
   categoryId: string;
   manufacturer?: string;

@@ -161,7 +161,7 @@ export default function ManufacturerFormModal({ manufacturer, onClose, onSaved }
         onClick={onClose}
       />
 
-      <div className="relative flex max-h-[90vh] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-2xl animate-scale-up">
+      <div className="relative flex max-h-[90vh] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-gray-300 bg-white shadow-2xl animate-scale-up">
         <div
           className="flex items-center justify-between px-6 py-4 text-white"
           style={{ background: 'linear-gradient(135deg, #007e42 0%, #0a9d52 100%)' }}
@@ -190,7 +190,7 @@ export default function ManufacturerFormModal({ manufacturer, onClose, onSaved }
           <div className="grid grid-cols-1 gap-4 px-6 py-5">
             <FormField label="Logo">
               <div className="flex items-center gap-4">
-                <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+                <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-lg border border-gray-300 bg-gray-50">
                   {logoPreview ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -203,7 +203,7 @@ export default function ManufacturerFormModal({ manufacturer, onClose, onSaved }
                   )}
                 </div>
                 <div className="flex flex-col gap-2">
-                  <label className="inline-flex h-9 cursor-pointer items-center gap-2 self-start rounded-lg border border-gray-200 bg-white px-3 text-sm font-semibold text-gray-700 transition hover:border-[#007e42]/30 hover:text-[#007e42]">
+                  <label className="inline-flex h-9 cursor-pointer items-center gap-2 self-start rounded-lg border border-gray-300 bg-white px-3 text-sm font-semibold text-gray-700 transition hover:border-[#007e42]/30 hover:text-[#007e42]">
                     <input
                       type="file"
                       accept="image/*"
@@ -233,7 +233,7 @@ export default function ManufacturerFormModal({ manufacturer, onClose, onSaved }
               <input
                 {...register('name', { onBlur: handleNameBlur })}
                 placeholder="Vd: Bayer"
-                className="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
+                className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
               />
             </FormField>
 
@@ -241,7 +241,7 @@ export default function ManufacturerFormModal({ manufacturer, onClose, onSaved }
               <input
                 {...register('slug')}
                 placeholder="Tự động sinh từ tên nếu để trống"
-                className="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 font-mono text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
+                className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 font-mono text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
               />
               <p className="mt-1 text-[11px] text-gray-400">
                 Chỉ chữ thường, số và dấu gạch ngang. Vd:{' '}
@@ -254,11 +254,11 @@ export default function ManufacturerFormModal({ manufacturer, onClose, onSaved }
                 rows={3}
                 {...register('description')}
                 placeholder="Mô tả ngắn về nhà sản xuất (tùy chọn)..."
-                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
               />
             </FormField>
 
-            <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-gray-200 bg-emerald-50/40 px-3.5 py-2.5 text-sm text-gray-700 transition hover:border-[#007e42]/30 hover:bg-emerald-50">
+            <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-gray-300 bg-emerald-50/40 px-3.5 py-2.5 text-sm text-gray-700 transition hover:border-[#007e42]/30 hover:bg-emerald-50">
               <input
                 type="checkbox"
                 {...register('isActive')}
@@ -276,11 +276,11 @@ export default function ManufacturerFormModal({ manufacturer, onClose, onSaved }
             </div>
           )}
 
-          <div className="flex justify-end gap-2 border-t border-gray-100 bg-gray-50/60 px-6 py-4">
+          <div className="flex justify-end gap-2 border-t border-gray-300 bg-gray-50/60 px-6 py-4">
             <button
               type="button"
               onClick={onClose}
-              className="h-10 rounded-lg border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-700 transition hover:border-[#007e42]/30 hover:text-[#007e42]"
+              className="h-10 rounded-lg border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 transition hover:border-[#007e42]/30 hover:text-[#007e42]"
             >
               Hủy
             </button>

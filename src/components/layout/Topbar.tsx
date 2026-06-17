@@ -25,7 +25,7 @@ export default function Topbar() {
   const { user } = useAuth();
 
   return (
-    <header className="flex h-14 items-center justify-between border-b border-gray-100 bg-white px-6 shadow-sm">
+    <header className="flex h-14 items-center justify-between border-b border-gray-300 bg-white px-6 shadow-sm">
       <div className="flex items-center gap-2">
         <span className="inline-flex items-center gap-2 rounded-full border border-[#007e42]/20 bg-emerald-50 px-3 py-1">
           <span className="h-1.5 w-1.5 rounded-full bg-[#007e42] animate-pulse" />

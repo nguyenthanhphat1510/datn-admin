@@ -24,6 +24,8 @@ import {
   IAlert,
 } from '@/components/icons';
 import StatCard from '@/components/ui/StatCard';
+import SelectMenu from '@/components/ui/SelectMenu';
+import Pagination from '@/components/ui/Pagination';
 import IconBtn from '@/components/ui/IconBtn';
 import Th from '@/components/ui/TableHead';
 import ProductFormModal from './ProductFormModal';
@@ -40,9 +42,13 @@ export default function ProductsPage() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [categoryId, setCategoryId] = useState<string>('');
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
+
+  const LIMIT = 10;
 
   // Lookup map cho cột "Danh mục"
   const categoryMap = useMemo(() => {
@@ -75,17 +81,24 @@ export default function ProductsPage() {
     setError(null);
     try {
       const result = await listProducts({
-        limit: 100,
+        page,
+        limit: LIMIT,
         search: search || undefined,
         categoryId: categoryId || undefined,
       });
       setProducts(result.data);
+      setTotal(result.total);
     } catch (err) {
       console.error(err);
       setError('Không tải được danh sách sản phẩm. Kiểm tra backend đang chạy chưa?');
     } finally {
       setLoading(false);
     }
+  }, [search, categoryId, page]);
+
+  // Đổi bộ lọc → quay về trang 1
+  useEffect(() => {
+    setPage(1);
   }, [search, categoryId]);
 
   useEffect(() => {
@@ -190,7 +203,7 @@ export default function ProductsPage() {
         <StatCard label="Đang ẩn" value={totalHidden} hint="Soft delete" tone="hidden" />
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-sm">
+      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-gray-300 bg-white px-4 py-3 shadow-sm">
         <div className="relative flex-1 min-w-[200px]">
           <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
             <ISearch />
@@ -200,23 +213,23 @@ export default function ProductsPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Tìm sản phẩm theo tên..."
-            className="h-10 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-3 text-sm font-medium text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
+            className="h-10 w-full rounded-lg border border-gray-300 bg-white pl-10 pr-3 text-sm font-medium text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
           />
         </div>
 
-        <select
+        <SelectMenu
           value={categoryId}
-          onChange={(e) => setCategoryId(e.target.value)}
-          className="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm font-medium text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
-        >
-          <option value="">Tất cả danh mục</option>
-          {categories.map((c) => (
-            <option key={c._id} value={c._id}>
-              {c.name}
-              {!c.isActive ? ' (ẩn)' : ''}
-            </option>
-          ))}
-        </select>
+          onChange={setCategoryId}
+          placeholder="Tất cả danh mục"
+          className="min-w-[200px]"
+          options={[
+            { value: '', label: 'Tất cả danh mục' },
+            ...categories.map((c) => ({
+              value: c._id,
+              label: c.name + (!c.isActive ? ' (ẩn)' : ''),
+            })),
+          ]}
+        />
       </div>
 
       {error && (
@@ -226,16 +239,10 @@ export default function ProductsPage() {
         </div>
       )}
 
-      {!loading && !error && (
-        <p className="text-sm text-gray-500">
-          Hiển thị <span className="font-semibold text-gray-800">{products.length}</span> sản phẩm
-        </p>
-      )}
-
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-xl border border-gray-300 bg-white shadow-sm">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50/70">
+          <table className="min-w-full divide-y divide-gray-300">
+            <thead className="bg-[#007e42] [&_th]:text-white">
               <tr>
                 <Th>Ảnh</Th>
                 <Th>Sản phẩm</Th>
@@ -246,7 +253,7 @@ export default function ProductsPage() {
                 <Th align="right">Hành động</Th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-300">
               {loading && (
                 <tr>
                   <td colSpan={7} className="px-4 py-10 text-center text-sm text-gray-400">
@@ -282,7 +289,7 @@ export default function ProductsPage() {
                           <img
                             src={p.images[0].url}
                             alt={p.name}
-                            className="h-20 w-20 rounded-lg border border-gray-200 object-cover"
+                            className="h-20 w-20 rounded-lg border border-gray-300 object-cover"
                           />
                         ) : (
                           <div className="flex h-20 w-20 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-50 to-teal-100">
@@ -292,9 +299,6 @@ export default function ProductsPage() {
                       </td>
                       <td className="max-w-xs px-4 py-2">
                         <div className="truncate text-base font-bold text-gray-800">{p.name}</div>
-                        {p.manufacturer && (
-                          <div className="truncate text-sm text-gray-600">{p.manufacturer}</div>
-                        )}
                       </td>
                       <td className="px-4 py-2">
                         {cat ? (
@@ -306,7 +310,16 @@ export default function ProductsPage() {
                         )}
                       </td>
                       <td className="px-4 py-2 text-right text-sm font-bold tabular-nums text-[#007e42]">
-                        {fmt(p.price)}
+                        {p.salePrice != null ? (
+                          <div className="flex flex-col items-end leading-tight">
+                            <span>{fmt(p.salePrice)}</span>
+                            <span className="text-[11px] font-medium text-gray-500 line-through">
+                              {fmt(p.price)}
+                            </span>
+                          </div>
+                        ) : (
+                          fmt(p.price)
+                        )}
                       </td>
                       <td className="px-4 py-2 text-right text-sm tabular-nums text-gray-700">
                         {p.stock}
@@ -358,6 +371,15 @@ export default function ProductsPage() {
           </table>
         </div>
       </div>
+
+      {!loading && !error && (
+        <Pagination
+          page={page}
+          total={total}
+          limit={LIMIT}
+          onPageChange={setPage}
+        />
+      )}
 
       {modalOpen && (
         <ProductFormModal
