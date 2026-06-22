@@ -84,12 +84,22 @@ function IFactory() {
   );
 }
 
+function IVirus() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v4M12 18v4M2 12h4M18 12h4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M19.1 4.9l-2.8 2.8M7.7 16.3l-2.8 2.8" />
+    </svg>
+  );
+}
+
 const NAV_ITEMS: NavItem[] = [
   { label: 'Tổng quan', href: '/dashboard', icon: IDashboard },
   { label: 'Sản phẩm', href: '/products', icon: IPackage },
   { label: 'Danh mục', href: '/categories', icon: IGrid },
   { label: 'Danh mục con', href: '/subcategories', icon: () => <ILeaf size={18} /> },
   { label: 'Nhà sản xuất', href: '/manufacturers', icon: IFactory },
+  { label: 'Bệnh lúa', href: '/diseases', icon: IVirus },
   { label: 'Người dùng', href: '/users', icon: IUsers },
   { label: 'Đơn hàng', href: '/orders', icon: ICart },
 ];
