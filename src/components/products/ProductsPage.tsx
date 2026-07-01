@@ -9,9 +9,11 @@ import {
 } from '@/lib/products-api';
 import { listCategories } from '@/lib/categories-api';
 import { listManufacturers } from '@/lib/manufacturers-api';
+import { listSubcategories } from '@/lib/subcategories-api';
 import type { Product } from '@/types/product';
 import type { Category } from '@/types/category';
 import type { Manufacturer } from '@/types/manufacturer';
+import type { Subcategory } from '@/types/subcategory';
 import {
   IPlus,
   IPencil,
@@ -38,6 +40,7 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
@@ -76,6 +79,16 @@ export default function ProductsPage() {
     }
   }, []);
 
+  const fetchSubcategories = useCallback(async () => {
+    try {
+      // Lấy cả inactive để product gán danh mục con đã ẩn vẫn hiển thị tên
+      const list = await listSubcategories(true);
+      setSubcategories(list);
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
+
   const fetchProducts = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -104,7 +117,8 @@ export default function ProductsPage() {
   useEffect(() => {
     fetchCategories();
     fetchManufacturers();
-  }, [fetchCategories, fetchManufacturers]);
+    fetchSubcategories();
+  }, [fetchCategories, fetchManufacturers, fetchSubcategories]);
 
   useEffect(() => {
     const id = setTimeout(fetchProducts, 300);
@@ -386,6 +400,7 @@ export default function ProductsPage() {
           product={editing}
           categories={categories.filter((c) => c.isActive)}
           manufacturers={manufacturers.filter((m) => m.isActive)}
+          subcategories={subcategories.filter((s) => s.isActive)}
           onClose={() => setModalOpen(false)}
           onSaved={() => {
             setModalOpen(false);

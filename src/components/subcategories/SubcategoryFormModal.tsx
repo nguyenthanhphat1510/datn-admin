@@ -24,7 +24,6 @@ const subcategorySchema = z.object({
     .optional()
     .or(z.literal('')),
   description: z.string().max(500).optional().or(z.literal('')),
-  isActive: z.boolean().optional(),
 });
 
 type FormValues = z.infer<typeof subcategorySchema>;
@@ -72,14 +71,12 @@ export default function SubcategoryFormModal({
           categoryId: subcategory.categoryId,
           slug: subcategory.slug,
           description: subcategory.description ?? '',
-          isActive: subcategory.isActive,
         }
       : {
           name: '',
           categoryId: '',
           slug: '',
           description: '',
-          isActive: true,
         },
   });
 
@@ -101,7 +98,6 @@ export default function SubcategoryFormModal({
         categoryId: values.categoryId,
         slug: values.slug?.trim() || undefined,
         description: values.description?.trim() || undefined,
-        isActive: values.isActive,
       };
 
       if (isEdit && subcategory) {
@@ -199,16 +195,6 @@ export default function SubcategoryFormModal({
                 className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
               />
             </FormField>
-
-            {/* isActive */}
-            <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-gray-300 bg-emerald-50/40 px-3.5 py-2.5 text-sm text-gray-700 transition hover:border-[#007e42]/30 hover:bg-emerald-50">
-              <input
-                type="checkbox"
-                {...register('isActive')}
-                className="h-4 w-4 rounded border-gray-300 text-[#007e42] focus:ring-[#007e42]"
-              />
-              <span className="font-medium">Hiện danh mục con trên cửa hàng</span>
-            </label>
           </div>
 
           {submitError && (

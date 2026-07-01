@@ -21,7 +21,6 @@ const categorySchema = z.object({
     .optional()
     .or(z.literal('')),
   description: z.string().max(500).optional().or(z.literal('')),
-  isActive: z.boolean().optional(),
 });
 
 type FormValues = z.infer<typeof categorySchema>;
@@ -62,13 +61,11 @@ export default function CategoryFormModal({ category, onClose, onSaved }: Props)
           name: category.name,
           slug: category.slug,
           description: category.description ?? '',
-          isActive: category.isActive,
         }
       : {
           name: '',
           slug: '',
           description: '',
-          isActive: true,
         },
   });
 
@@ -90,7 +87,6 @@ export default function CategoryFormModal({ category, onClose, onSaved }: Props)
         name: values.name,
         slug: values.slug?.trim() || undefined,
         description: values.description?.trim() || undefined,
-        isActive: values.isActive,
       };
 
       if (isEdit && category) {
@@ -176,17 +172,6 @@ export default function CategoryFormModal({ category, onClose, onSaved }: Props)
                 className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
               />
             </FormField>
-
-            <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-gray-300 bg-emerald-50/40 px-3.5 py-2.5 text-sm text-gray-700 transition hover:border-[#007e42]/30 hover:bg-emerald-50">
-              <input
-                type="checkbox"
-                {...register('isActive')}
-                className="h-4 w-4 rounded border-gray-300 text-[#007e42] focus:ring-[#007e42]"
-              />
-              <span className="font-medium">
-                Hiện danh mục trên cửa hàng (khách thấy được)
-              </span>
-            </label>
           </div>
 
           {submitError && (

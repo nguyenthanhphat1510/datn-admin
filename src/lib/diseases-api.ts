@@ -41,3 +41,19 @@ export async function restoreDisease(id: string): Promise<Disease> {
   const { data } = await api.patch<Disease>(`/diseases/${id}/restore`);
   return data;
 }
+
+export async function uploadDiseaseImages(id: string, files: File[]): Promise<Disease> {
+  const formData = new FormData();
+  files.forEach((f) => formData.append('files', f));
+  const { data } = await api.post<Disease>(`/diseases/${id}/images`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return data;
+}
+
+export async function deleteDiseaseImage(id: string, publicId: string): Promise<Disease> {
+  const { data } = await api.delete<Disease>(`/diseases/${id}/images`, {
+    params: { publicId },
+  });
+  return data;
+}

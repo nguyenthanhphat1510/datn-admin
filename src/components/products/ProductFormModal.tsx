@@ -12,10 +12,24 @@ import {
 import type { Product } from '@/types/product';
 import type { Category } from '@/types/category';
 import type { Manufacturer } from '@/types/manufacturer';
+import type { Subcategory } from '@/types/subcategory';
 import { IClose } from '@/components/icons';
 import FormField from '@/components/ui/FormField';
 import SelectMenu from '@/components/ui/SelectMenu';
 import ImageUploader from './ImageUploader';
+
+// Định dạng số có dấu chấm ngăn cách hàng nghìn (vd: 149000 -> "149.000")
+function formatThousands(value: number | undefined | null): string {
+  if (value == null || Number.isNaN(value)) return '';
+  return value.toLocaleString('vi-VN');
+}
+
+// Bỏ mọi ký tự không phải chữ số để lấy lại số thật (vd: "149.000" -> 149000)
+function parseThousands(raw: string): number | undefined {
+  const digits = raw.replace(/\D/g, '');
+  if (digits === '') return undefined;
+  return Number(digits);
+}
 
 const productSchema = z.object({
   name: z
@@ -34,9 +48,10 @@ const productSchema = z.object({
     .int('Tồn kho phải là số nguyên')
     .min(0, 'Tồn kho không được âm'),
   categoryId: z.string().min(1, 'Hãy chọn danh mục'),
-  manufacturer: z.string().optional(),
+  subcategoryId: z.string().min(1, 'Hãy chọn danh mục con'),
+  manufacturer: z.string().min(1, 'Hãy chọn nhà sản xuất'),
   usageInstructions: z.string().optional(),
-  isActive: z.boolean().optional(),
+  ingredients: z.string().optional(),
 }).refine(
   (data) => data.salePrice == null || data.salePrice < data.price,
   {
@@ -51,6 +66,7 @@ interface Props {
   product: Product | null;
   categories: Category[];
   manufacturers: Manufacturer[];
+  subcategories: Subcategory[];
   onClose: () => void;
   onSaved: () => void;
 }
@@ -59,6 +75,7 @@ export default function ProductFormModal({
   product,
   categories,
   manufacturers,
+  subcategories,
   onClose,
   onSaved,
 }: Props) {
@@ -71,6 +88,8 @@ export default function ProductFormModal({
     register,
     handleSubmit,
     control,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(productSchema),
@@ -82,21 +101,29 @@ export default function ProductFormModal({
           salePrice: product.salePrice ?? undefined,
           stock: product.stock,
           categoryId: product.categoryId,
+          subcategoryId: product.subcategoryId ?? '',
           manufacturer: product.manufacturer ?? '',
           usageInstructions: product.usageInstructions ?? '',
-          isActive: product.isActive,
+          ingredients: product.ingredients ?? '',
         }
       : {
           name: '',
           description: '',
-          price: 0,
-          stock: 0,
+          price: undefined,
+          stock: undefined,
           categoryId: categories[0]?._id ?? '',
-          manufacturer: '',
+          subcategoryId: '',
+          manufacturer: manufacturers[0]?._id ?? '',
           usageInstructions: '',
-          isActive: true,
+          ingredients: '',
         },
   });
+
+  // Danh mục con phải thuộc danh mục đang chọn → lọc theo categoryId hiện tại
+  const selectedCategoryId = watch('categoryId');
+  const filteredSubcategories = subcategories.filter(
+    (s) => s.categoryId === selectedCategoryId,
+  );
 
   const onSubmit = async (values: FormValues) => {
     setSubmitting(true);
@@ -106,11 +133,9 @@ export default function ProductFormModal({
       const hasSale =
         values.salePrice != null && !Number.isNaN(values.salePrice);
 
-      // manufacturer rỗng -> undefined để DTO @IsMongoId skip (vì có @IsOptional)
       const payload = {
         ...values,
         salePrice: hasSale ? values.salePrice : null,
-        manufacturer: values.manufacturer?.trim() ? values.manufacturer : undefined,
       };
 
       let savedId: string;
@@ -190,17 +215,25 @@ export default function ProductFormModal({
             </FormField>
 
             <FormField label="Giá (đồng) *" error={errors.price?.message}>
-              <div className="relative">
-                <input
-                  type="number"
-                  step="any"
-                  {...register('price', { valueAsNumber: true })}
-                  className="h-10 w-full rounded-lg border border-gray-300 bg-white pl-3 pr-7 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
-                />
-                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-400">
-                  ₫
-                </span>
-              </div>
+              <Controller
+                control={control}
+                name="price"
+                render={({ field }) => (
+                  <div className="relative">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="Vd: 180.000"
+                      value={formatThousands(field.value)}
+                      onChange={(e) => field.onChange(parseThousands(e.target.value))}
+                      className="h-10 w-full rounded-lg border border-gray-300 bg-white pl-3 pr-7 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
+                    />
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-400">
+                      ₫
+                    </span>
+                  </div>
+                )}
+              />
             </FormField>
 
             <FormField
@@ -208,25 +241,41 @@ export default function ProductFormModal({
               error={errors.salePrice?.message}
               hint="Để trống nếu không giảm giá"
             >
-              <div className="relative">
-                <input
-                  type="number"
-                  step="any"
-                  placeholder="Vd: 149000"
-                  {...register('salePrice', { valueAsNumber: true })}
-                  className="h-10 w-full rounded-lg border border-gray-300 bg-white pl-3 pr-7 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
-                />
-                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-400">
-                  ₫
-                </span>
-              </div>
+              <Controller
+                control={control}
+                name="salePrice"
+                render={({ field }) => (
+                  <div className="relative">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="Vd: 149.000"
+                      value={formatThousands(field.value)}
+                      onChange={(e) => field.onChange(parseThousands(e.target.value))}
+                      className="h-10 w-full rounded-lg border border-gray-300 bg-white pl-3 pr-7 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
+                    />
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-400">
+                      ₫
+                    </span>
+                  </div>
+                )}
+              />
             </FormField>
 
             <FormField label="Tồn kho *" error={errors.stock?.message}>
-              <input
-                type="number"
-                {...register('stock', { valueAsNumber: true })}
-                className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
+              <Controller
+                control={control}
+                name="stock"
+                render={({ field }) => (
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="Vd: 100"
+                    value={formatThousands(field.value)}
+                    onChange={(e) => field.onChange(parseThousands(e.target.value))}
+                    className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
+                  />
+                )}
               />
             </FormField>
 
@@ -242,7 +291,12 @@ export default function ProductFormModal({
                   render={({ field }) => (
                     <SelectMenu
                       value={field.value ?? ''}
-                      onChange={field.onChange}
+                      onChange={(v) => {
+                        field.onChange(v);
+                        // Đổi danh mục → reset danh mục con (con cũ có thể không
+                        // còn thuộc danh mục mới)
+                        setValue('subcategoryId', '', { shouldValidate: true });
+                      }}
                       placeholder="Chọn danh mục"
                       options={categories.map((c) => ({
                         value: c._id,
@@ -254,7 +308,31 @@ export default function ProductFormModal({
               )}
             </FormField>
 
-            <FormField label="Nhà sản xuất" error={errors.manufacturer?.message}>
+            <FormField label="Danh mục con *" error={errors.subcategoryId?.message}>
+              {filteredSubcategories.length === 0 ? (
+                <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                  Danh mục này chưa có danh mục con. Hãy tạo trước ở trang Danh mục con.
+                </div>
+              ) : (
+                <Controller
+                  control={control}
+                  name="subcategoryId"
+                  render={({ field }) => (
+                    <SelectMenu
+                      value={field.value ?? ''}
+                      onChange={field.onChange}
+                      placeholder="Chọn danh mục con"
+                      options={filteredSubcategories.map((s) => ({
+                        value: s._id,
+                        label: s.name,
+                      }))}
+                    />
+                  )}
+                />
+              )}
+            </FormField>
+
+            <FormField label="Nhà sản xuất *" error={errors.manufacturer?.message}>
               {manufacturers.length === 0 ? (
                 <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
                   Chưa có nhà sản xuất. Hãy tạo trước ở trang Nhà sản xuất.
@@ -267,14 +345,11 @@ export default function ProductFormModal({
                     <SelectMenu
                       value={field.value ?? ''}
                       onChange={field.onChange}
-                      placeholder="— Không chọn —"
-                      options={[
-                        { value: '', label: '— Không chọn —' },
-                        ...manufacturers.map((m) => ({
-                          value: m._id,
-                          label: m.name,
-                        })),
-                      ]}
+                      placeholder="Chọn nhà sản xuất"
+                      options={manufacturers.map((m) => ({
+                        value: m._id,
+                        label: m.name,
+                      }))}
                     />
                   )}
                 />
@@ -303,18 +378,19 @@ export default function ProductFormModal({
               />
             </FormField>
 
-            <div className="md:col-span-2">
-              <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-gray-300 bg-emerald-50/40 px-3.5 py-2.5 text-sm text-gray-700 transition hover:border-[#007e42]/30 hover:bg-emerald-50">
-                <input
-                  type="checkbox"
-                  {...register('isActive')}
-                  className="h-4 w-4 rounded border-gray-300 text-[#007e42] focus:ring-[#007e42]"
-                />
-                <span className="font-medium">
-                  Hiện sản phẩm trên cửa hàng (khách thấy được)
-                </span>
-              </label>
-            </div>
+            <FormField
+              label="Thành phần / hoạt chất"
+              error={errors.ingredients?.message}
+              hint="Thuốc: hoạt chất + hàm lượng. Phân bón: công thức NPK. Để trống nếu không có"
+              colSpan={2}
+            >
+              <textarea
+                rows={3}
+                {...register('ingredients')}
+                placeholder="Vd: Tricyclazole 75% WP  —  hoặc  —  N 16% - P2O5 16% - K2O 8%"
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
+              />
+            </FormField>
 
             <div className="md:col-span-2">
               <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-gray-500">
@@ -349,7 +425,7 @@ export default function ProductFormModal({
             </button>
             <button
               type="submit"
-              disabled={submitting || categories.length === 0}
+              disabled={submitting || categories.length === 0 || manufacturers.length === 0}
               className="h-10 rounded-lg px-4 text-sm font-semibold text-white shadow-sm transition hover:shadow-md disabled:opacity-60"
               style={{ background: 'linear-gradient(135deg, #007e42 0%, #0a9d52 100%)' }}
             >

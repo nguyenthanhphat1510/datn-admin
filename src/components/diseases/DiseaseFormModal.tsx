@@ -4,12 +4,17 @@ import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { createDisease, updateDisease } from '@/lib/diseases-api';
+import {
+  createDisease,
+  updateDisease,
+  uploadDiseaseImages,
+} from '@/lib/diseases-api';
 import { listProducts } from '@/lib/products-api';
 import type { Disease } from '@/types/disease';
 import type { Product } from '@/types/product';
 import { IClose } from '@/components/icons';
 import FormField from '@/components/ui/FormField';
+import DiseaseImageUploader from './DiseaseImageUploader';
 
 const diseaseSchema = z.object({
   name: z
@@ -23,7 +28,6 @@ const diseaseSchema = z.object({
     .optional()
     .or(z.literal('')),
   description: z.string().max(2000).optional().or(z.literal('')),
-  isActive: z.boolean().optional(),
 });
 
 type FormValues = z.infer<typeof diseaseSchema>;
@@ -49,6 +53,7 @@ export default function DiseaseFormModal({ disease, onClose, onSaved }: Props) {
   const isEdit = !!disease;
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
 
   // Triệu chứng: quản lý dạng chip + input riêng (ngoài react-hook-form)
   const [symptoms, setSymptoms] = useState<string[]>(disease?.symptoms ?? []);
@@ -82,13 +87,11 @@ export default function DiseaseFormModal({ disease, onClose, onSaved }: Props) {
           name: disease.name,
           slug: disease.slug,
           description: disease.description ?? '',
-          isActive: disease.isActive,
         }
       : {
           name: '',
           slug: '',
           description: '',
-          isActive: true,
         },
   });
 
@@ -142,14 +145,28 @@ export default function DiseaseFormModal({ disease, onClose, onSaved }: Props) {
         description: values.description?.trim() || undefined,
         symptoms,
         recommendedProductIds: selectedProductIds,
-        isActive: values.isActive,
       };
 
+      let savedId: string;
       if (isEdit && disease) {
-        await updateDisease(disease._id, payload);
+        const updated = await updateDisease(disease._id, payload);
+        savedId = updated._id;
       } else {
-        await createDisease(payload);
+        const created = await createDisease(payload);
+        savedId = created._id;
       }
+
+      if (pendingFiles.length > 0) {
+        try {
+          await uploadDiseaseImages(savedId, pendingFiles);
+        } catch (uploadErr) {
+          console.error(uploadErr);
+          alert(
+            'Lưu bệnh thành công nhưng upload ảnh thất bại. Mở lại để upload tiếp.',
+          );
+        }
+      }
+
       onSaved();
     } catch (err: unknown) {
       console.error(err);
@@ -298,14 +315,21 @@ export default function DiseaseFormModal({ disease, onClose, onSaved }: Props) {
               </div>
             </FormField>
 
-            <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-gray-300 bg-emerald-50/40 px-3.5 py-2.5 text-sm text-gray-700 transition hover:border-[#007e42]/30 hover:bg-emerald-50">
-              <input
-                type="checkbox"
-                {...register('isActive')}
-                className="h-4 w-4 rounded border-gray-300 text-[#007e42] focus:ring-[#007e42]"
+            <div>
+              <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-gray-500">
+                Ảnh minh họa
+              </label>
+              <DiseaseImageUploader
+                diseaseId={disease?._id}
+                existingImages={disease?.images ?? []}
+                pendingFiles={pendingFiles}
+                onPendingFilesChange={setPendingFiles}
+                onExistingChanged={onSaved}
               />
-              <span className="font-medium">Đang sử dụng (chatbot tra được)</span>
-            </label>
+              <p className="mt-1.5 text-xs text-gray-400">
+                Tối đa 5 ảnh / lần, mỗi ảnh ≤ 5MB. Định dạng: JPEG / PNG / WebP / GIF.
+              </p>
+            </div>
           </div>
 
           {submitError && (
