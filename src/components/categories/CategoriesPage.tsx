@@ -232,12 +232,7 @@ export default function CategoriesPage() {
                     style={{ animationDelay: `${i * 30}ms` }}
                   >
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-50 to-teal-100">
-                          <ILeaf size={20} />
-                        </div>
-                        <div className="text-sm font-semibold text-gray-800">{c.name}</div>
-                      </div>
+                      <div className="text-sm font-semibold text-gray-800">{c.name}</div>
                     </td>
                     <td className="px-4 py-3">
                       <code className="rounded bg-gray-100 px-2 py-0.5 font-mono text-[11px] text-gray-700">

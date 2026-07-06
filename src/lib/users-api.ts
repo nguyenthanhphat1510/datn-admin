@@ -7,6 +7,17 @@ export async function listUsers(): Promise<User[]> {
   return data;
 }
 
+/** [Admin] Tạo người dùng mới (cho phép set vai trò). */
+export async function createUser(dto: {
+  email: string;
+  password: string;
+  fullName?: string;
+  role?: UserRole;
+}): Promise<{ message: string; user: User }> {
+  const { data } = await api.post<{ message: string; user: User }>('/users', dto);
+  return data;
+}
+
 /** [Admin] Cập nhật vai trò / trạng thái kích hoạt của 1 user. */
 export async function updateUser(
   id: string,

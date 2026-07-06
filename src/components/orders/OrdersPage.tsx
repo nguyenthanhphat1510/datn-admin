@@ -128,6 +128,7 @@ export default function OrdersPage() {
           label="Doanh thu (đã giao)"
           value={stats.revenue}
           hint="Trang này"
+          format="currency"
         />
       </div>
 
@@ -190,7 +191,7 @@ export default function OrdersPage() {
                   return (
                     <Fragment key={o._id}>
                       <tr
-                        className="animate-fade-in-up cursor-pointer transition hover:bg-emerald-50/40"
+                        className="animate-fade-in-up cursor-pointer transition hover:bg-emerald-100/70"
                         style={{ animationDelay: `${i * 30}ms` }}
                         onClick={() => setExpanded(isExpanded ? null : o._id)}
                       >

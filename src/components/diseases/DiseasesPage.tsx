@@ -7,7 +7,9 @@ import {
   restoreDisease,
   softDeleteDisease,
 } from '@/lib/diseases-api';
+import { listProducts } from '@/lib/products-api';
 import type { Disease } from '@/types/disease';
+import type { Product } from '@/types/product';
 import {
   IPlus,
   IPencil,
@@ -26,6 +28,7 @@ import DiseaseFormModal from './DiseaseFormModal';
 
 export default function DiseasesPage() {
   const [diseases, setDiseases] = useState<Disease[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
@@ -50,6 +53,19 @@ export default function DiseasesPage() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Lấy sản phẩm để map recommendedProductIds → ảnh/tên thuốc
+  useEffect(() => {
+    listProducts({ page: 1, limit: 1000 })
+      .then((res) => setProducts(res.data))
+      .catch((err) => console.error(err));
+  }, []);
+
+  const productMap = useMemo(() => {
+    const m = new Map<string, Product>();
+    products.forEach((p) => m.set(p._id, p));
+    return m;
+  }, [products]);
 
   // Filter search client-side (danh sách thường nhỏ)
   const filtered = useMemo(() => {
@@ -233,9 +249,23 @@ export default function DiseasesPage() {
                   >
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-50 to-teal-100">
-                          <ILeaf size={20} />
-                        </div>
+                        {d.images?.[0]?.url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={d.images[0].url}
+                            alt={d.name}
+                            loading="lazy"
+                            style={{ width: 72, height: 72, minWidth: 72 }}
+                            className="rounded-lg border border-gray-300 bg-gray-50 object-cover"
+                          />
+                        ) : (
+                          <div
+                            style={{ width: 72, height: 72, minWidth: 72 }}
+                            className="flex items-center justify-center rounded-lg bg-gradient-to-br from-emerald-50 to-teal-100"
+                          >
+                            <ILeaf size={32} />
+                          </div>
+                        )}
                         <div className="text-sm font-semibold text-gray-800">{d.name}</div>
                       </div>
                     </td>
@@ -266,9 +296,41 @@ export default function DiseasesPage() {
                       )}
                     </td>
                     <td className="px-4 py-3 text-sm">
-                      <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-[#007e42]">
-                        {d.recommendedProductIds.length} thuốc
-                      </span>
+                      {d.recommendedProductIds.length === 0 ? (
+                        <span className="italic text-gray-300">— không có —</span>
+                      ) : (
+                        <div className="flex items-center">
+                          <div className="flex -space-x-2">
+                            {d.recommendedProductIds.slice(0, 3).map((pid) => {
+                              const prod = productMap.get(pid);
+                              return prod?.images?.[0]?.url ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  key={pid}
+                                  src={prod.images[0].url}
+                                  alt={prod.name}
+                                  title={prod.name}
+                                  loading="lazy"
+                                  className="h-10 w-10 rounded-lg border-2 border-white bg-white object-contain p-0.5 ring-1 ring-gray-200"
+                                />
+                              ) : (
+                                <div
+                                  key={pid}
+                                  title={prod?.name}
+                                  className="flex h-10 w-10 items-center justify-center rounded-lg border-2 border-white bg-gradient-to-br from-emerald-50 to-teal-100 ring-1 ring-gray-200"
+                                >
+                                  <ILeaf size={16} />
+                                </div>
+                              );
+                            })}
+                          </div>
+                          {d.recommendedProductIds.length > 3 && (
+                            <span className="ml-2 inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-[#007e42]">
+                              +{d.recommendedProductIds.length - 3}
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-sm">
                       {d.isActive ? (

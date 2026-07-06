@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
 function ILogOut() {
@@ -21,18 +22,37 @@ function IBell() {
   );
 }
 
-export default function Topbar() {
-  const { user } = useAuth();
+function IMenu() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="3" y1="12" x2="21" y2="12" />
+      <line x1="3" y1="6" x2="21" y2="6" />
+      <line x1="3" y1="18" x2="21" y2="18" />
+    </svg>
+  );
+}
+
+export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
+  const { user, logout } = useAuth();
+  const router = useRouter();
+
+  function handleLogout() {
+    logout();
+    router.replace('/login');
+  }
 
   return (
-    <header className="flex h-14 items-center justify-between border-b border-gray-300 bg-white px-6 shadow-sm">
+    <header className="flex h-14 items-center justify-between border-b border-gray-300 bg-white px-4 shadow-sm sm:px-6">
       <div className="flex items-center gap-2">
-        <span className="inline-flex items-center gap-2 rounded-full border border-[#007e42]/20 bg-emerald-50 px-3 py-1">
-          <span className="h-1.5 w-1.5 rounded-full bg-[#007e42] animate-pulse" />
-          <span className="text-[10px] font-bold uppercase tracking-widest text-[#007e42]">
-            Đang chạy chế độ demo
-          </span>
-        </span>
+        {/* Nút mở menu chỉ hiện trên mobile */}
+        <button
+          type="button"
+          onClick={onMenuClick}
+          className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 lg:hidden"
+          aria-label="Mở menu"
+        >
+          <IMenu />
+        </button>
       </div>
 
       <div className="flex items-center gap-3">
@@ -52,7 +72,7 @@ export default function Topbar() {
           >
             {user?.name?.[0] ?? 'A'}
           </div>
-          <div className="text-right">
+          <div className="hidden text-right sm:block">
             <div className="text-xs font-semibold text-gray-800">{user?.name ?? 'Khách'}</div>
             <div className="text-[10px] uppercase tracking-wide text-gray-400">
               {user?.role ?? 'guest'}
@@ -62,9 +82,9 @@ export default function Topbar() {
 
         <button
           type="button"
-          disabled
-          title="Chưa bật đăng nhập"
-          className="flex h-9 w-9 cursor-not-allowed items-center justify-center rounded-lg border border-gray-200 text-gray-400"
+          onClick={handleLogout}
+          title="Đăng xuất"
+          className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-red-300 hover:bg-red-50 hover:text-red-600"
         >
           <ILogOut />
         </button>

@@ -117,21 +117,58 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Đơn hàng', href: '/orders', icon: ICart },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  mobileOpen: boolean;
+  onClose: () => void;
+}
+
+function IClose() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  );
+}
+
+export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
 
   return (
-    <aside className="flex w-64 shrink-0 flex-col border-r border-[#005f32] bg-[#007e42] text-white">
-      {/* Logo */}
-      <div className="flex items-center gap-2.5 border-b border-white/10 px-5 py-4 text-white">
-        <ILeaf size={26} />
-        <div>
-          <div className="text-sm font-extrabold uppercase tracking-wide">DATN Admin</div>
-          <div className="text-[10px] font-medium uppercase tracking-widest text-emerald-100/90">
-            Vật tư nông nghiệp
+    <>
+      {/* Overlay mờ khi mở drawer trên mobile */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/40 lg:hidden"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+      )}
+
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 flex w-64 shrink-0 flex-col border-r border-[#005f32] bg-[#007e42] text-white transition-transform duration-200 lg:static lg:z-auto lg:translate-x-0 ${
+          mobileOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        {/* Logo */}
+        <div className="flex items-center gap-2.5 border-b border-white/10 px-5 py-4 text-white">
+          <ILeaf size={26} />
+          <div className="flex-1">
+            <div className="text-sm font-extrabold uppercase tracking-wide">DATN Admin</div>
+            <div className="text-[10px] font-medium uppercase tracking-widest text-emerald-100/90">
+              Vật tư nông nghiệp
+            </div>
           </div>
+          {/* Nút đóng chỉ hiện trên mobile */}
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-white/80 hover:bg-white/10 hover:text-white lg:hidden"
+            aria-label="Đóng menu"
+          >
+            <IClose />
+          </button>
         </div>
-      </div>
 
       {/* Nav */}
       <nav className="flex-1 p-3">
@@ -163,6 +200,7 @@ export default function Sidebar() {
               <li key={item.href}>
                 <Link
                   href={item.href}
+                  onClick={onClose}
                   className={`flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-sm transition hover:bg-white/10 ${
                     active
                       ? 'border-transparent bg-white font-semibold text-[#007e42] shadow-sm'
@@ -178,9 +216,10 @@ export default function Sidebar() {
         </ul>
       </nav>
 
-      <div className="border-t border-white/10 px-5 py-3 text-[11px] font-medium uppercase tracking-wider text-emerald-100/60">
-        v0.1 · MVP
-      </div>
-    </aside>
+        <div className="border-t border-white/10 px-5 py-3 text-[11px] font-medium uppercase tracking-wider text-emerald-100/60">
+          v0.1 · MVP
+        </div>
+      </aside>
+    </>
   );
 }

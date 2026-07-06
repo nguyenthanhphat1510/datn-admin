@@ -22,6 +22,7 @@ import {
 import StatCard from '@/components/ui/StatCard';
 import IconBtn from '@/components/ui/IconBtn';
 import Th from '@/components/ui/TableHead';
+import Pagination from '@/components/ui/Pagination';
 import ManufacturerFormModal from './ManufacturerFormModal';
 
 export default function ManufacturersPage() {
@@ -32,6 +33,9 @@ export default function ManufacturersPage() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Manufacturer | null>(null);
+  const [page, setPage] = useState(1);
+
+  const LIMIT = 5;
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -61,6 +65,17 @@ export default function ManufacturersPage() {
         (m.description ?? '').toLowerCase().includes(q),
     );
   }, [manufacturers, search]);
+
+  // Đổi tìm kiếm → quay về trang 1 (tránh đứng ở trang không còn dữ liệu)
+  useEffect(() => {
+    setPage(1);
+  }, [search]);
+
+  // Cắt danh sách đã lọc thành trang hiện tại (phân trang client-side)
+  const paged = useMemo(
+    () => filtered.slice((page - 1) * LIMIT, page * LIMIT),
+    [filtered, page],
+  );
 
   const openCreate = () => {
     setEditing(null);
@@ -225,14 +240,14 @@ export default function ManufacturersPage() {
                 </tr>
               )}
               {!loading &&
-                filtered.map((m, i) => (
+                paged.map((m, i) => (
                   <tr
                     key={m._id}
                     className="transition hover:bg-emerald-50/40 animate-fade-in-up"
                     style={{ animationDelay: `${i * 30}ms` }}
                   >
                     <td className="px-4 py-3">
-                      <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg border border-gray-300 bg-white">
+                      <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-lg border border-gray-300 bg-white p-1">
                         {m.logo?.url ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
@@ -241,7 +256,7 @@ export default function ManufacturersPage() {
                             className="h-full w-full object-contain"
                           />
                         ) : (
-                          <ILeaf size={18} />
+                          <ILeaf size={24} />
                         )}
                       </div>
                     </td>
@@ -302,6 +317,15 @@ export default function ManufacturersPage() {
           </table>
         </div>
       </div>
+
+      {!loading && !error && (
+        <Pagination
+          page={page}
+          total={filtered.length}
+          limit={LIMIT}
+          onPageChange={setPage}
+        />
+      )}
 
       {modalOpen && (
         <ManufacturerFormModal

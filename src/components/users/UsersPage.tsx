@@ -3,12 +3,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { listUsers, updateUser } from '@/lib/users-api';
 import type { User, UserRole } from '@/types/user';
-import { ISearch, IShield, IEye, IEyeOff, IAlert, ILeaf } from '@/components/icons';
+import { ISearch, IShield, IEye, IEyeOff, IAlert, ILeaf, IPlus } from '@/components/icons';
 import StatCard from '@/components/ui/StatCard';
 import SelectMenu from '@/components/ui/SelectMenu';
 import IconBtn from '@/components/ui/IconBtn';
 import Pagination from '@/components/ui/Pagination';
 import Th from '@/components/ui/TableHead';
+import UserFormModal from './UserFormModal';
 
 function fmtDate(s: string) {
   return new Date(s).toLocaleString('vi-VN', {
@@ -45,6 +46,7 @@ export default function UsersPage() {
   const [roleFilter, setRoleFilter] = useState<string>('');
   const [page, setPage] = useState(1);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const LIMIT = 5;
 
@@ -148,6 +150,16 @@ export default function UsersPage() {
             Xem, đổi vai trò và khóa/mở tài khoản người dùng
           </p>
         </div>
+
+        <button
+          type="button"
+          onClick={() => setModalOpen(true)}
+          className="inline-flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-semibold text-white shadow-sm transition hover:shadow-md"
+          style={{ background: 'linear-gradient(135deg, #007e42 0%, #0a9d52 100%)' }}
+        >
+          <IPlus />
+          Thêm người dùng
+        </button>
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -320,6 +332,16 @@ export default function UsersPage() {
           total={filtered.length}
           limit={LIMIT}
           onPageChange={setPage}
+        />
+      )}
+
+      {modalOpen && (
+        <UserFormModal
+          onClose={() => setModalOpen(false)}
+          onSaved={() => {
+            setModalOpen(false);
+            fetchUsers();
+          }}
         />
       )}
     </div>

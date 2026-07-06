@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   listTechniques,
   uploadTechnique,
@@ -11,6 +11,7 @@ import { ITrash, IAlert, ILeaf, IPlus } from '@/components/icons';
 import StatCard from '@/components/ui/StatCard';
 import IconBtn from '@/components/ui/IconBtn';
 import Th from '@/components/ui/TableHead';
+import Pagination from '@/components/ui/Pagination';
 
 // Đuôi file cho phép upload. Backend đọc PDF qua pdf-parse, còn lại đọc text thuần.
 const ACCEPT = '.pdf,.txt,.md,application/pdf,text/plain';
@@ -21,6 +22,9 @@ export default function TechniquesPage() {
   const [docs, setDocs] = useState<TechniqueDoc[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+
+  const LIMIT = 5;
 
   const [uploading, setUploading] = useState(false);
   const [uploadMsg, setUploadMsg] = useState<string | null>(null);
@@ -44,6 +48,12 @@ export default function TechniquesPage() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Phân trang client-side
+  const paged = useMemo(
+    () => docs.slice((page - 1) * LIMIT, page * LIMIT),
+    [docs, page],
+  );
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -206,20 +216,15 @@ export default function TechniquesPage() {
                 </tr>
               )}
               {!loading &&
-                docs.map((doc, i) => (
+                paged.map((doc, i) => (
                   <tr
                     key={doc.docId}
                     className="transition hover:bg-emerald-50/40 animate-fade-in-up"
                     style={{ animationDelay: `${i * 30}ms` }}
                   >
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-50 to-teal-100">
-                          <ILeaf size={20} />
-                        </div>
-                        <div className="text-sm font-semibold text-gray-800">
-                          {doc.docTitle}
-                        </div>
+                      <div className="text-sm font-semibold text-gray-800">
+                        {doc.docTitle}
                       </div>
                     </td>
                     <td className="px-4 py-3 text-sm">
@@ -247,6 +252,15 @@ export default function TechniquesPage() {
           </table>
         </div>
       </div>
+
+      {!loading && !error && (
+        <Pagination
+          page={page}
+          total={docs.length}
+          limit={LIMIT}
+          onPageChange={setPage}
+        />
+      )}
     </div>
   );
 }

@@ -25,6 +25,7 @@ import StatCard from '@/components/ui/StatCard';
 import SelectMenu from '@/components/ui/SelectMenu';
 import IconBtn from '@/components/ui/IconBtn';
 import Th from '@/components/ui/TableHead';
+import Pagination from '@/components/ui/Pagination';
 import SubcategoryFormModal from './SubcategoryFormModal';
 
 export default function SubcategoriesPage() {
@@ -37,6 +38,9 @@ export default function SubcategoriesPage() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Subcategory | null>(null);
+  const [page, setPage] = useState(1);
+
+  const LIMIT = 5;
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -77,6 +81,17 @@ export default function SubcategoriesPage() {
       return matchSearch && matchCategory;
     });
   }, [subcategories, search, filterCategoryId]);
+
+  // Đổi bộ lọc → quay về trang 1
+  useEffect(() => {
+    setPage(1);
+  }, [search, filterCategoryId]);
+
+  // Phân trang client-side
+  const paged = useMemo(
+    () => filtered.slice((page - 1) * LIMIT, page * LIMIT),
+    [filtered, page],
+  );
 
   const openCreate = () => {
     setEditing(null);
@@ -252,7 +267,7 @@ export default function SubcategoriesPage() {
                 </tr>
               )}
               {!loading &&
-                filtered.map((s, i) => (
+                paged.map((s, i) => (
                   <tr
                     key={s._id}
                     className="transition hover:bg-emerald-50/40 animate-fade-in-up"
@@ -260,12 +275,7 @@ export default function SubcategoriesPage() {
                   >
                     {/* Tên */}
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-50 to-teal-100">
-                          <ILeaf size={20} />
-                        </div>
-                        <div className="text-sm font-semibold text-gray-800">{s.name}</div>
-                      </div>
+                      <div className="text-sm font-semibold text-gray-800">{s.name}</div>
                     </td>
 
                     {/* Danh mục cha */}
@@ -340,6 +350,15 @@ export default function SubcategoriesPage() {
           </table>
         </div>
       </div>
+
+      {!loading && !error && (
+        <Pagination
+          page={page}
+          total={filtered.length}
+          limit={LIMIT}
+          onPageChange={setPage}
+        />
+      )}
 
       {modalOpen && (
         <SubcategoryFormModal

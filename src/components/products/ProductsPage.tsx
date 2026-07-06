@@ -60,6 +60,20 @@ export default function ProductsPage() {
     return m;
   }, [categories]);
 
+  // Lookup map cho cột "Danh mục con"
+  const subcategoryMap = useMemo(() => {
+    const m = new Map<string, Subcategory>();
+    subcategories.forEach((s) => m.set(s._id, s));
+    return m;
+  }, [subcategories]);
+
+  // Lookup map cho cột "Nhà sản xuất"
+  const manufacturerMap = useMemo(() => {
+    const m = new Map<string, Manufacturer>();
+    manufacturers.forEach((mf) => m.set(mf._id, mf));
+    return m;
+  }, [manufacturers]);
+
   const fetchCategories = useCallback(async () => {
     try {
       // Lấy cả inactive để product gán danh mục đã ẩn vẫn hiển thị tên
@@ -255,12 +269,14 @@ export default function ProductsPage() {
 
       <div className="overflow-hidden rounded-xl border border-gray-300 bg-white shadow-sm">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-300">
+          <table className="w-full min-w-[900px] divide-y divide-gray-300">
             <thead className="bg-[#007e42] [&_th]:text-white">
               <tr>
                 <Th>Ảnh</Th>
                 <Th>Sản phẩm</Th>
                 <Th>Danh mục</Th>
+                <Th>Danh mục con</Th>
+                <Th>Nhà sản xuất</Th>
                 <Th align="right">Giá</Th>
                 <Th align="right">Tồn kho</Th>
                 <Th>Trạng thái</Th>
@@ -270,14 +286,14 @@ export default function ProductsPage() {
             <tbody className="divide-y divide-gray-300">
               {loading && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center text-sm text-gray-400">
+                  <td colSpan={9} className="px-4 py-10 text-center text-sm text-gray-400">
                     Đang tải...
                   </td>
                 </tr>
               )}
               {!loading && products.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center">
+                  <td colSpan={9} className="px-4 py-12 text-center">
                     <div className="flex flex-col items-center gap-2">
                       <ILeaf size={40} />
                       <p className="text-sm font-semibold text-gray-600">Chưa có sản phẩm nào</p>
@@ -291,6 +307,8 @@ export default function ProductsPage() {
               {!loading &&
                 products.map((p, i) => {
                   const cat = categoryMap.get(p.categoryId);
+                  const sub = p.subcategoryId ? subcategoryMap.get(p.subcategoryId) : undefined;
+                  const mf = p.manufacturer ? manufacturerMap.get(p.manufacturer) : undefined;
                   return (
                     <tr
                       key={p._id}
@@ -303,10 +321,15 @@ export default function ProductsPage() {
                           <img
                             src={p.images[0].url}
                             alt={p.name}
-                            className="h-20 w-20 rounded-lg border border-gray-300 object-cover"
+                            loading="lazy"
+                            style={{ width: 80, height: 80, minWidth: 80 }}
+                            className="rounded-lg border border-gray-300 bg-gray-50 object-contain p-1"
                           />
                         ) : (
-                          <div className="flex h-20 w-20 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-50 to-teal-100">
+                          <div
+                            style={{ width: 80, height: 80, minWidth: 80 }}
+                            className="flex items-center justify-center rounded-lg bg-gradient-to-br from-emerald-50 to-teal-100"
+                          >
                             <ILeaf size={40} />
                           </div>
                         )}
@@ -319,6 +342,22 @@ export default function ProductsPage() {
                           <span className="inline-flex rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#007e42]">
                             {cat.name}
                           </span>
+                        ) : (
+                          <span className="text-xs italic text-gray-400">— không có —</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-2">
+                        {sub ? (
+                          <span className="inline-flex rounded-full bg-teal-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-teal-700">
+                            {sub.name}
+                          </span>
+                        ) : (
+                          <span className="text-xs italic text-gray-400">— không có —</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-2">
+                        {mf ? (
+                          <span className="text-sm font-medium text-gray-700">{mf.name}</span>
                         ) : (
                           <span className="text-xs italic text-gray-400">— không có —</span>
                         )}
