@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import type { ReactElement } from 'react';
 
@@ -152,7 +153,13 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
       >
         {/* Logo */}
         <div className="flex items-center gap-2.5 border-b border-white/10 px-5 py-4 text-white">
-          <ILeaf size={26} />
+          <Image
+            src="/caylua.jpg"
+            alt="Cây lúa"
+            width={26}
+            height={26}
+            className="h-6.5 w-6.5 rounded-full object-cover"
+          />
           <div className="flex-1">
             <div className="text-sm font-extrabold uppercase tracking-wide">DATN Admin</div>
             <div className="text-[10px] font-medium uppercase tracking-widest text-emerald-100/90">
