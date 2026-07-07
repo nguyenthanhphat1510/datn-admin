@@ -95,7 +95,7 @@ export default function LoginPage() {
           {/* Logo + tiêu đề */}
           <div className="mb-5 text-center">
             <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl bg-[#007e42]/10 ring-1 ring-[#007e42]/20">
-              <Image src="/caylua.jpg" alt="DATN Admin" width={56} height={56} className="object-cover" />
+              <Image src="/caylua.jpg" alt="TP Agri Admin" width={56} height={56} className="object-cover" />
             </div>
             <div className="mb-1 inline-flex items-center gap-1.5 rounded-full border border-[#007e42]/20 bg-emerald-50 px-2.5 py-0.5">
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#007e42]" />

@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DATN Admin",
-  description: "Trang quản trị sản phẩm",
+  title: "TP Agri Admin - Trang quản trị",
+  description: "TP Agri - Trang quản trị phân bón, thuốc BVTV và bệnh hại lúa",
 };
 
 export default function RootLayout({

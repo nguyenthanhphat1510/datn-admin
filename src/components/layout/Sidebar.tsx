@@ -156,12 +156,12 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
           <Image
             src="/caylua.jpg"
             alt="Cây lúa"
-            width={26}
-            height={26}
-            className="h-6.5 w-6.5 rounded-full object-cover"
+            width={40}
+            height={40}
+            className="h-10 w-10 rounded-full object-cover"
           />
           <div className="flex-1">
-            <div className="text-sm font-extrabold uppercase tracking-wide">DATN Admin</div>
+            <div className="text-sm font-extrabold uppercase tracking-wide">TP Agri Admin</div>
             <div className="text-[10px] font-medium uppercase tracking-widest text-emerald-100/90">
               Vật tư nông nghiệp
             </div>
