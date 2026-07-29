@@ -59,6 +59,13 @@ export default function DiseaseFormModal({ disease, onClose, onSaved }: Props) {
   const [symptoms, setSymptoms] = useState<string[]>(disease?.symptoms ?? []);
   const [symptomInput, setSymptomInput] = useState('');
 
+  // Đặc trưng nhận dạng (keyFeatures) — 3 chiều chatbot ghép thành query khi người
+  // dùng bấm thẻ đối chiếu, + giai đoạn chỉ để hiển thị. Quản lý ngoài rhf cho gọn.
+  const [viTri, setViTri] = useState(disease?.keyFeatures?.viTri ?? '');
+  const [hinhDang, setHinhDang] = useState(disease?.keyFeatures?.hinhDang ?? '');
+  const [mauSac, setMauSac] = useState(disease?.keyFeatures?.mauSac ?? '');
+  const [giaiDoan, setGiaiDoan] = useState(disease?.keyFeatures?.giaiDoan ?? '');
+
   // Thuốc gợi ý: danh sách product để chọn + tập id đã chọn
   const [products, setProducts] = useState<Product[]>([]);
   const [productSearch, setProductSearch] = useState('');
@@ -139,11 +146,21 @@ export default function DiseaseFormModal({ disease, onClose, onSaved }: Props) {
     setSubmitting(true);
     setSubmitError(null);
     try {
+      // Gộp 4 chiều đặc trưng; chỉ giữ chiều có nhập. Cả 4 rỗng → gửi undefined
+      // để không lưu object rỗng vô nghĩa.
+      const kf = {
+        ...(viTri.trim() ? { viTri: viTri.trim() } : {}),
+        ...(hinhDang.trim() ? { hinhDang: hinhDang.trim() } : {}),
+        ...(mauSac.trim() ? { mauSac: mauSac.trim() } : {}),
+        ...(giaiDoan.trim() ? { giaiDoan: giaiDoan.trim() } : {}),
+      };
+
       const payload = {
         name: values.name,
         slug: values.slug?.trim() || undefined,
         description: values.description?.trim() || undefined,
         symptoms,
+        keyFeatures: Object.keys(kf).length > 0 ? kf : undefined,
         recommendedProductIds: selectedProductIds,
       };
 
@@ -269,6 +286,61 @@ export default function DiseaseFormModal({ disease, onClose, onSaved }: Props) {
               </div>
               <p className="mt-1 text-[11px] text-gray-400">
                 Nhấn Enter hoặc dấu phẩy để thêm. Dùng cho chatbot chẩn đoán.
+              </p>
+            </FormField>
+
+            {/* Đặc trưng nhận dạng (keyFeatures) — thẻ đối chiếu của chatbot */}
+            <FormField label="Đặc trưng nhận dạng (thẻ đối chiếu chatbot)">
+              <div className="grid grid-cols-1 gap-2.5 rounded-lg border border-gray-300 bg-gray-50/60 p-3 sm:grid-cols-2">
+                <label className="block">
+                  <span className="mb-1 block text-[11px] font-semibold text-gray-500">
+                    Vị trí
+                  </span>
+                  <input
+                    value={viTri}
+                    onChange={(e) => setViTri(e.target.value)}
+                    placeholder="vd: trên phiến lá"
+                    className="h-9 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-[11px] font-semibold text-gray-500">
+                    Hình dạng
+                  </span>
+                  <input
+                    value={hinhDang}
+                    onChange={(e) => setHinhDang(e.target.value)}
+                    placeholder="vd: hình thoi"
+                    className="h-9 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-[11px] font-semibold text-gray-500">
+                    Màu sắc
+                  </span>
+                  <input
+                    value={mauSac}
+                    onChange={(e) => setMauSac(e.target.value)}
+                    placeholder="vd: viền nâu giữa màu xám tro"
+                    className="h-9 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-[11px] font-semibold text-gray-500">
+                    Giai đoạn <span className="font-normal text-gray-400">(chỉ hiển thị)</span>
+                  </span>
+                  <input
+                    value={giaiDoan}
+                    onChange={(e) => setGiaiDoan(e.target.value)}
+                    placeholder="vd: đẻ nhánh rộ đến phân hóa đòng"
+                    className="h-9 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
+                  />
+                </label>
+              </div>
+              <p className="mt-1 text-[11px] text-gray-400">
+                Chatbot hiển thị 4 dòng này thành thẻ để người dùng đối chiếu. Vị
+                trí + hình dạng + màu sắc được ghép thành câu tìm bệnh khi người
+                dùng bấm thẻ; giai đoạn chỉ để hiển thị.
               </p>
             </FormField>
 
