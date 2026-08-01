@@ -94,6 +94,20 @@ function IVirus() {
   );
 }
 
+// Icon cho trang "Chiều nhận dạng": mấy trục toả ra từ một tâm — gợi ý một bệnh
+// được tả theo nhiều chiều khác nhau.
+function IDims() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="2.5" />
+      <path d="M12 9.5V3M14.4 13.2l5.6 3.3M9.6 13.2 4 16.5" />
+      <circle cx="12" cy="3" r="1.5" />
+      <circle cx="20" cy="16.5" r="1.5" />
+      <circle cx="4" cy="16.5" r="1.5" />
+    </svg>
+  );
+}
+
 function IDocument() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -113,6 +127,8 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Danh mục con', href: '/subcategories', icon: () => <ILeaf size={18} /> },
   { label: 'Nhà sản xuất', href: '/manufacturers', icon: IFactory },
   { label: 'Bệnh lúa', href: '/diseases', icon: IVirus },
+  // Đặt ngay dưới "Bệnh lúa": khai báo chiều luôn là việc làm TIẾP SAU khi tạo bệnh.
+  { label: 'Chiều nhận dạng', href: '/disease-dims', icon: IDims },
   { label: 'Tài liệu kỹ thuật', href: '/techniques', icon: IDocument },
   { label: 'Người dùng', href: '/users', icon: IUsers },
   { label: 'Đơn hàng', href: '/orders', icon: ICart },
