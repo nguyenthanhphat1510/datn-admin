@@ -13,6 +13,7 @@ import {
 } from '@/types/dim-chunk';
 import { ISearch, IAlert, IRotate, ILeaf } from '@/components/icons';
 import StatCard from '@/components/ui/StatCard';
+import Th from '@/components/ui/TableHead';
 import DimChunkEditor from './DimChunkEditor';
 
 /** Lấy message lỗi từ response axios, có fallback. */
@@ -44,7 +45,7 @@ export default function DimChunksPage() {
       setData(await listDiseaseDims());
     } catch (err) {
       console.error(err);
-      setError('Không tải được dữ liệu chiều. Kiểm tra backend đang chạy chưa?');
+      setError('Không tải được dữ liệu dấu hiệu. Kiểm tra backend đang chạy chưa?');
     } finally {
       setLoading(false);
     }
@@ -65,7 +66,7 @@ export default function DimChunksPage() {
     );
   }, [data, search]);
 
-  // Số bệnh đã đủ 5 chiều dùng được — đây là con số admin cần nhìn nhất, vì bệnh
+  // Số bệnh đã đủ 4 chiều dùng được — đây là con số admin cần nhìn nhất, vì bệnh
   // thiếu chiều sẽ bị chấm điểm thiếu, dễ thua bệnh khác một cách oan uổng.
   const dayDu = data.filter((d) => d.missingDims.length === 0).length;
   const soChieuThieu = data.reduce((sum, d) => sum + d.missingDims.length, 0);
@@ -83,10 +84,10 @@ export default function DimChunksPage() {
       const res = await reEmbedMissing();
       setNotice(
         res.total === 0
-          ? 'Không có chiều nào thiếu vector.'
+          ? 'Không có dấu hiệu nào thiếu vector.'
           : `Đã sinh lại ${res.done}/${res.total} vector` +
               (res.failed > 0
-                ? ` — còn ${res.failed} chiều lỗi (thường do hết quota Gemini trong ngày, mai chạy lại).`
+                ? ` — còn ${res.failed} dấu hiệu lỗi (thường do hết quota Gemini trong ngày, mai chạy lại).`
                 : '.'),
       );
       await fetchData();
@@ -109,21 +110,20 @@ export default function DimChunksPage() {
             </span>
           </div>
           <h1 className="text-2xl font-extrabold text-gray-900">
-            Chiều{' '}
+            Mô tả{' '}
             <span
               className="bg-clip-text text-transparent"
               style={{
                 backgroundImage: 'linear-gradient(90deg, #007e42, #0a9d52, #84cc16)',
               }}
             >
-              nhận dạng bệnh
+              dấu hiệu bệnh
             </span>
           </h1>
-          <p className="mt-1 max-w-3xl text-sm text-gray-500">
-            Mỗi bệnh được tả theo 5 chiều. Chatbot so mô tả của người dùng với{' '}
-            <b>đúng chiều</b> để chấm điểm, nên mỗi ô phải viết sao cho{' '}
-            <b>khác rõ với bệnh còn lại ở cùng chiều</b> — hai bệnh viết na ná nhau
-            thì chiều đó không phân biệt được gì.
+          <p className="mt-1 max-w-2xl text-sm text-gray-500">
+            Mỗi bệnh được tả theo 5 dấu hiệu cố định. Chatbot so mô tả của người
+            dùng với từng dấu hiệu để chấm điểm, nên ở cùng một dấu hiệu thì các
+            bệnh phải viết khác nhau rõ rệt.
           </p>
         </div>
 
@@ -134,8 +134,8 @@ export default function DimChunksPage() {
           className="inline-flex h-10 items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:border-[#007e42] hover:text-[#007e42] disabled:cursor-not-allowed disabled:opacity-50"
           title={
             soChieuHongVector === 0
-              ? 'Mọi chiều đã có vector'
-              : `${soChieuHongVector} chiều có nội dung nhưng thiếu vector`
+              ? 'Mọi dấu hiệu đã có vector'
+              : `${soChieuHongVector} dấu hiệu có nội dung nhưng thiếu vector`
           }
         >
           <IRotate />
@@ -143,24 +143,22 @@ export default function DimChunksPage() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <StatCard
-          label="Bệnh đủ 5 chiều"
+          label="Bệnh đủ 5 dấu hiệu"
           value={dayDu}
           hint={`/ ${data.length} bệnh`}
           tone="active"
         />
         <StatCard
-          label="Chiều còn thiếu"
+          label="Dấu hiệu cần xử lý"
           value={soChieuThieu}
-          hint="Chưa có, đang tắt, hoặc thiếu vector"
+          hint={
+            soChieuHongVector > 0
+              ? `Chưa có, đang tắt, hoặc thiếu vector (${soChieuHongVector} thiếu vector)`
+              : 'Chưa có, đang tắt, hoặc thiếu vector'
+          }
           tone={soChieuThieu > 0 ? 'hidden' : 'active'}
-        />
-        <StatCard
-          label="Chiều hỏng vector"
-          value={soChieuHongVector}
-          hint="Có nội dung nhưng chưa embed được"
-          tone={soChieuHongVector > 0 ? 'hidden' : 'active'}
         />
       </div>
 
@@ -173,7 +171,7 @@ export default function DimChunksPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Tìm theo tên bệnh, slug, hoặc nội dung chiều..."
+            placeholder="Tìm theo tên bệnh, slug, hoặc nội dung mô tả..."
             className="h-10 w-full rounded-lg border border-gray-300 bg-white pl-10 pr-3 text-sm font-medium text-gray-700 outline-none focus:border-[#007e42] focus:ring-1 focus:ring-[#007e42]"
           />
         </div>
@@ -213,7 +211,7 @@ export default function DimChunksPage() {
           </p>
           <p className="text-xs text-gray-400">
             {data.length === 0
-              ? 'Tạo bệnh ở trang "Bệnh lúa" trước, rồi quay lại đây khai báo 5 chiều'
+              ? 'Tạo bệnh ở trang "Bệnh lúa" trước, rồi quay lại đây khai báo 5 dấu hiệu'
               : 'Thử từ khóa khác'}
           </p>
         </div>
@@ -235,38 +233,54 @@ export default function DimChunksPage() {
                 </div>
                 {d.missingDims.length === 0 ? (
                   <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700">
-                    Đủ 5 chiều
+                    Đủ 5 dấu hiệu
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-semibold text-amber-700">
+                  <span
+                    title={`Cần xử lý: ${d.missingDims
+                      .map((x) => DIM_LABEL[x])
+                      .join(', ')}`}
+                    className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-semibold text-amber-700"
+                  >
                     <IAlert />
-                    Thiếu {d.missingDims.length} chiều:{' '}
-                    {d.missingDims.map((x) => DIM_LABEL[x]).join(', ')}
+                    Thiếu {d.missingDims.length}/5 dấu hiệu
                   </span>
                 )}
               </header>
 
-              <div className="divide-y divide-gray-200">
-                {DISEASE_DIMS.map((chieu) => {
-                  const found = d.dims.find((x) => x.chieu === chieu);
-                  return (
-                    <DimChunkEditor
-                      key={chieu}
-                      diseaseSlug={d.diseaseSlug}
-                      chieu={chieu}
-                      chunk={found?.chunk ?? null}
-                      isOpen={
-                        editing?.slug === d.diseaseSlug && editing?.chieu === chieu
-                      }
-                      onOpen={() => setEditing({ slug: d.diseaseSlug, chieu })}
-                      onClose={() => setEditing(null)}
-                      onSaved={() => {
-                        setEditing(null);
-                        fetchData();
-                      }}
-                    />
-                  );
-                })}
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-300">
+                  <thead className="bg-[#007e42] [&_th]:text-white">
+                    <tr>
+                      <Th>Dấu hiệu</Th>
+                      <Th>Mô tả</Th>
+                      <Th>Trạng thái</Th>
+                      <Th align="right">Hành động</Th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-300">
+                    {DISEASE_DIMS.map((chieu) => {
+                      const found = d.dims.find((x) => x.chieu === chieu);
+                      return (
+                        <DimChunkEditor
+                          key={chieu}
+                          diseaseSlug={d.diseaseSlug}
+                          chieu={chieu}
+                          chunk={found?.chunk ?? null}
+                          isOpen={
+                            editing?.slug === d.diseaseSlug && editing?.chieu === chieu
+                          }
+                          onOpen={() => setEditing({ slug: d.diseaseSlug, chieu })}
+                          onClose={() => setEditing(null)}
+                          onSaved={() => {
+                            setEditing(null);
+                            fetchData();
+                          }}
+                        />
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             </section>
           ))}

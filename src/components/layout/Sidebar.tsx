@@ -85,25 +85,35 @@ function IFactory() {
   );
 }
 
+// Icon cho trang "Bệnh lúa": phiến lá lúa mang vết bệnh HÌNH THOI hai đầu nhọn —
+// đúng hình dạng vết đạo ôn lá ngoài đồng. Vết vẽ lệch sang một bên gân, không
+// nằm chồng lên gân, nếu không ở cỡ 18px hai nét dính vào nhau là mất hình.
 function IVirus() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="4" />
-      <path d="M12 2v4M12 18v4M2 12h4M18 12h4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M19.1 4.9l-2.8 2.8M7.7 16.3l-2.8 2.8" />
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      {/* phiến lá: gốc dưới-trái, ngọn nhọn vươn lên trên-phải */}
+      <path d="M6.5 21.5C3.5 14 6 6.5 20.5 2.5 18.5 17 12.5 21 6.5 21.5Z" />
+      {/* gân chính, chỉ vẽ đoạn gốc cho thoáng */}
+      <path d="M7.5 20.5 12 14.8" />
+      {/* vết bệnh hình thoi */}
+      <path d="M17.2 6.2c.6 2.8-.6 5.6-3 7 -.6-2.8.6-5.6 3-7Z" />
     </svg>
   );
 }
 
-// Icon cho trang "Chiều nhận dạng": mấy trục toả ra từ một tâm — gợi ý một bệnh
-// được tả theo nhiều chiều khác nhau.
+// Icon cho trang "Dấu hiệu bệnh": kính lúp soi vào lá có vết — trang này là nơi
+// TẢ KỸ từng dấu hiệu của vết, nên nhấn vào việc soi/quan sát. Lúp đặt cạnh ngọn
+// lá chứ không trùm lên lá, để cỡ nhỏ vẫn đọc ra "lá + kính lúp".
 function IDims() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="2.5" />
-      <path d="M12 9.5V3M14.4 13.2l5.6 3.3M9.6 13.2 4 16.5" />
-      <circle cx="12" cy="3" r="1.5" />
-      <circle cx="20" cy="16.5" r="1.5" />
-      <circle cx="4" cy="16.5" r="1.5" />
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      {/* phiến lá thu nhỏ, nhường chỗ cho kính lúp */}
+      <path d="M3 21.5C.8 15.5 2.8 9.5 13 6.5 11.5 17 7.5 20.8 3 21.5Z" />
+      <path d="M3.8 20.8 7.5 16.2" />
+      {/* kính lúp + vết bệnh hình thoi đang được soi */}
+      <circle cx="16.5" cy="8.5" r="5" />
+      <path d="M20.2 12.2 22.8 14.8" />
+      <path d="M18.2 6.6c.4 2-.5 3.9-2.2 4.8-.4-2 .5-3.9 2.2-4.8Z" />
     </svg>
   );
 }
@@ -127,8 +137,8 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Danh mục con', href: '/subcategories', icon: () => <ILeaf size={18} /> },
   { label: 'Nhà sản xuất', href: '/manufacturers', icon: IFactory },
   { label: 'Bệnh lúa', href: '/diseases', icon: IVirus },
-  // Đặt ngay dưới "Bệnh lúa": khai báo chiều luôn là việc làm TIẾP SAU khi tạo bệnh.
-  { label: 'Chiều nhận dạng', href: '/disease-dims', icon: IDims },
+  // Đặt ngay dưới "Bệnh lúa": tả dấu hiệu luôn là việc làm TIẾP SAU khi tạo bệnh.
+  { label: 'Dấu hiệu bệnh', href: '/disease-dims', icon: IDims },
   { label: 'Tài liệu kỹ thuật', href: '/techniques', icon: IDocument },
   { label: 'Người dùng', href: '/users', icon: IUsers },
   { label: 'Đơn hàng', href: '/orders', icon: ICart },
@@ -240,7 +250,7 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
       </nav>
 
         <div className="border-t border-white/10 px-5 py-3 text-[11px] font-medium uppercase tracking-wider text-emerald-100/60">
-          v0.1 · MVP
+      
         </div>
       </aside>
     </>

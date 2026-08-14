@@ -40,3 +40,28 @@ export const STATUS_ORDER: OrderStatus[] = [
   'delivered',
   'cancelled',
 ];
+
+/**
+ * Từ trạng thái hiện tại, được phép chuyển sang những trạng thái nào.
+ *
+ * ⚠️ PHẢI KHỚP `assertValidTransition` trong
+ * backend/src/orders/orders.service.ts — backend mới là nơi chặn thật, bảng này
+ * chỉ để dropdown không hiện lựa chọn chắc chắn bị từ chối. Lệch nhau thì admin
+ * bấm được nhưng server trả lỗi, nhìn như app hỏng.
+ *
+ * Luồng: pending → confirmed → shipping → delivered (tiến đúng 1 bước liền kề),
+ * và pending/confirmed/shipping đều có thể → cancelled.
+ * `delivered` + `cancelled` là điểm cuối — mảng rỗng, không đổi được nữa.
+ */
+export const ALLOWED_NEXT_STATUS: Record<OrderStatus, OrderStatus[]> = {
+  pending: ['confirmed', 'cancelled'],
+  confirmed: ['shipping', 'cancelled'],
+  shipping: ['delivered', 'cancelled'],
+  delivered: [],
+  cancelled: [],
+};
+
+/** Đơn đã chốt (giao xong / đã hủy) — không cho đổi trạng thái nữa. */
+export function isFinalStatus(status: OrderStatus): boolean {
+  return ALLOWED_NEXT_STATUS[status].length === 0;
+}

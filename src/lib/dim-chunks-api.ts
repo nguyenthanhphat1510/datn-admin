@@ -6,13 +6,13 @@ import type {
   ReEmbedResult,
 } from '@/types/dim-chunk';
 
-/** Mọi bệnh kèm 5 chiều + danh sách chiều còn thiếu. */
+/** Mọi bệnh kèm 4 chiều + danh sách chiều còn thiếu. */
 export async function listDiseaseDims(): Promise<DiseaseDims[]> {
   const { data } = await api.get<DiseaseDims[]>('/disease-dims');
   return data;
 }
 
-/** 5 chiều của một bệnh theo slug. */
+/** 4 chiều của một bệnh theo slug. */
 export async function getDiseaseDims(slug: string): Promise<DiseaseDims> {
   const { data } = await api.get<DiseaseDims>(`/disease-dims/${slug}`);
   return data;

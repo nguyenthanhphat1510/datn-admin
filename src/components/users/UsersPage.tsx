@@ -48,7 +48,11 @@ export default function UsersPage() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
-  const LIMIT = 5;
+  // 10 dòng/trang thay vì 5: danh sách user vốn đã tải HẾT về client
+  // (listUsers không phân trang), phân trang ở đây chỉ để bảng khỏi dài quá.
+  // Để 5 thì phải bấm sang trang liên tục dù dữ liệu đã nằm sẵn trong bộ nhớ.
+  // Lấy 10 cho khớp trang đơn hàng.
+  const LIMIT = 10;
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);

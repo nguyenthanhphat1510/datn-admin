@@ -8,7 +8,13 @@ import StatCard from '@/components/ui/StatCard';
 import SelectMenu from '@/components/ui/SelectMenu';
 import Pagination from '@/components/ui/Pagination';
 import Th from '@/components/ui/TableHead';
-import { STATUS_META, STATUS_ORDER } from '@/lib/order-status';
+import {
+  STATUS_META,
+  STATUS_ORDER,
+  ALLOWED_NEXT_STATUS,
+  isFinalStatus,
+} from '@/lib/order-status';
+import { useToast } from '@/contexts/ToastContext';
 
 function fmt(n: number) {
   return n.toLocaleString('vi-VN') + '₫';
@@ -30,6 +36,7 @@ const STATUS_OPTIONS = [
 ];
 
 export default function OrdersPage() {
+  const { showToast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,6 +45,9 @@ export default function OrdersPage() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+  // Số liệu TOÀN HỆ THỐNG do backend tính — không tự cộng trên `orders` nữa vì
+  // mảng đó chỉ là 1 trang (xem hint các thẻ StatCard bên dưới).
+  const [stats, setStats] = useState({ pending: 0, revenue: 0 });
 
   const LIMIT = 10;
 
@@ -52,6 +62,7 @@ export default function OrdersPage() {
       });
       setOrders(res.data);
       setTotal(res.total);
+      setStats(res.stats);
     } catch (err) {
       console.error(err);
       setError('Không tải được danh sách đơn hàng. Kiểm tra backend đang chạy chưa?');
@@ -78,23 +89,21 @@ export default function OrdersPage() {
       setOrders((prev) =>
         prev.map((o) => (o._id === order._id ? { ...o, status } : o)),
       );
+      showToast(
+        `Đơn #${order._id.slice(-6).toUpperCase()} → ${STATUS_META[status].label}`,
+        'success',
+      );
     } catch (err) {
       console.error(err);
-      alert('Cập nhật trạng thái thất bại');
+      // Lấy ĐÚNG câu backend trả về (vd "Không thể chuyển từ ... sang ...")
+      // thay vì câu chung chung: admin cần biết vì sao bị từ chối mới xử lý được.
+      const msg = (err as { response?: { data?: { message?: string } } })
+        ?.response?.data?.message;
+      showToast(msg ?? 'Cập nhật trạng thái thất bại', 'error');
     } finally {
       setUpdatingId(null);
     }
   };
-
-  // Thống kê. "Tổng đơn" lấy total thật từ server; 2 thẻ còn lại tính trên
-  // trang hiện tại (phân trang server-side nên không có sẵn số toàn cục).
-  const stats = useMemo(() => {
-    const revenue = orders
-      .filter((o) => o.status === 'delivered')
-      .reduce((sum, o) => sum + o.total, 0);
-    const pending = orders.filter((o) => o.status === 'pending').length;
-    return { pending, revenue };
-  }, [orders]);
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-5">
@@ -122,12 +131,23 @@ export default function OrdersPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <StatCard label="Tổng đơn" value={total} hint="Toàn hệ thống" />
-        <StatCard label="Chờ xác nhận" value={stats.pending} hint="Trang này" tone="active" />
+        {/* `total` đổi theo bộ lọc (là số đơn KHỚP LỌC), còn 2 thẻ sau luôn là
+            số toàn hệ thống do backend tính — nên hint của chúng khác nhau. */}
+        <StatCard
+          label={statusFilter ? 'Đơn khớp lọc' : 'Tổng đơn'}
+          value={total}
+          hint={statusFilter ? 'Theo bộ lọc' : 'Toàn hệ thống'}
+        />
+        <StatCard
+          label="Chờ xác nhận"
+          value={stats.pending}
+          hint="Toàn hệ thống"
+          tone="active"
+        />
         <StatCard
           label="Doanh thu (đã giao)"
           value={stats.revenue}
-          hint="Trang này"
+          hint="Toàn hệ thống"
           format="currency"
         />
       </div>
@@ -224,15 +244,35 @@ export default function OrdersPage() {
                         </td>
                         <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                           <div className="flex justify-end">
-                            <SelectMenu
-                              value={o.status}
-                              onChange={(v) => handleStatusChange(o, v as OrderStatus)}
-                              className="w-44"
-                              options={STATUS_ORDER.map((s) => ({
-                                value: s,
-                                label: STATUS_META[s].label,
-                              }))}
-                            />
+                            {/* Đơn đã giao / đã hủy là điểm cuối — không còn
+                                trạng thái nào chuyển tới được, nên hiện chữ
+                                thay vì dropdown rỗng bấm vào không có gì. */}
+                            {isFinalStatus(o.status) ? (
+                              <span className="text-xs text-gray-400">
+                                Đã kết thúc
+                              </span>
+                            ) : (
+                              <SelectMenu
+                                value={o.status}
+                                onChange={(v) => handleStatusChange(o, v as OrderStatus)}
+                                className="w-44"
+                                // CHỈ hiện các trạng thái chuyển tới được, kèm
+                                // chính trạng thái hiện tại (để dropdown có giá
+                                // trị đang chọn mà hiển thị). Trước đây liệt kê
+                                // đủ 5 trạng thái nên admin chọn được cả bước
+                                // LÙI, backend từ chối → nhìn như lỗi hệ thống.
+                                options={[
+                                  {
+                                    value: o.status,
+                                    label: STATUS_META[o.status].label,
+                                  },
+                                  ...ALLOWED_NEXT_STATUS[o.status].map((s) => ({
+                                    value: s,
+                                    label: STATUS_META[s].label,
+                                  })),
+                                ]}
+                              />
+                            )}
                           </div>
                           {updatingId === o._id && (
                             <div className="mt-1 text-right text-[10px] text-gray-400">

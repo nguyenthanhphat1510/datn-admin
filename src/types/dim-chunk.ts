@@ -1,36 +1,35 @@
 /**
- * 5 CHIỀU mô tả một bệnh lúa — phải khớp `DISEASE_DIMS` ở backend
+ * 4 DẤU HIỆU mô tả một bệnh lúa — phải khớp `DISEASE_DIMS` ở backend
  * (backend/src/diseases/entities/disease-dim-chunk.entity.ts).
+ * Tên khóa (`viTri`, `hinhDang`...) là hợp đồng với backend, KHÔNG đổi;
+ * chỉ nhãn hiển thị bên dưới mới đổi được.
+ *
+ * ĐÃ BỎ dấu hiệu `giaiDoan`: giai đoạn lúa là thông tin về CÂY chứ không phải về
+ * VẾT BỆNH, nhiều bệnh cùng phát ở một giai đoạn nên nó kéo điểm sang bệnh sai.
+ * Bốn dấu hiệu còn lại đều tả hình thái vết bệnh. Xem lý do đầy đủ ở entity backend.
  */
-export const DISEASE_DIMS = [
-  'viTri',
-  'hinhDang',
-  'mauSac',
-  'phanBo',
-  'giaiDoan',
-] as const;
+export const DISEASE_DIMS = ['viTri', 'hinhDang', 'mauSac', 'phanBo'] as const;
 
 export type DiseaseDim = (typeof DISEASE_DIMS)[number];
 
-/** Nhãn tiếng Việt của từng chiều. */
+/** Nhãn tiếng Việt của từng dấu hiệu. */
 export const DIM_LABEL: Record<DiseaseDim, string> = {
   viTri: 'Vị trí vết bệnh',
-  hinhDang: 'Hình dạng vết bệnh',
-  mauSac: 'Màu sắc vết bệnh',
-  phanBo: 'Cách phân bố vết bệnh',
-  giaiDoan: 'Giai đoạn lúa lúc phát bệnh',
+  hinhDang: 'Hình dạng vết',
+  mauSac: 'Màu sắc vết',
+  phanBo: 'Cách phân bố',
 };
 
 /**
  * Gợi ý cho admin biết mỗi ô nên viết gì. Chunk phải viết đủ PHÂN BIỆT với bệnh
- * khác ở cùng chiều — hai chunk cùng chiều viết na ná nhau thì chiều đó vô dụng.
+ * khác ở cùng dấu hiệu — hai chunk cùng dấu hiệu viết na ná nhau thì dấu hiệu đó
+ * vô dụng.
  */
 export const DIM_HINT: Record<DiseaseDim, string> = {
   viTri: 'Vết nằm ở đâu: giữa phiến lá / mép lá / cổ bông / bẹ / vỏ hạt...',
   hinhDang: 'Hình dạng vết: hình thoi hai đầu nhọn / tròn tù / sọc dài / vành thắt...',
   mauSac: 'Màu vết và diễn tiến màu: xám tro viền nâu / nâu có quầng vàng / bạc trắng...',
   phanBo: 'Cách phân bố: rải rác riêng lẻ / liên kết thành mảng / lan từ mép vào...',
-  giaiDoan: 'Lúa ở giai đoạn nào khi bệnh nặng: đẻ nhánh / làm đòng / trỗ / chín...',
 };
 
 export interface DimChunk {
@@ -45,7 +44,7 @@ export interface DimChunk {
   updatedAt: string;
 }
 
-/** Toàn cảnh 5 chiều của một bệnh — chiều chưa có thì `chunk` là null. */
+/** Toàn cảnh 5 dấu hiệu của một bệnh — dấu hiệu chưa có thì `chunk` là null. */
 export interface DiseaseDims {
   diseaseSlug: string;
   diseaseName: string;

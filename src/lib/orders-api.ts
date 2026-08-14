@@ -6,6 +6,8 @@ export interface PaginatedOrders {
   total: number;
   page: number;
   limit: number;
+  /** Số liệu TOÀN HỆ THỐNG (không theo trang / bộ lọc) — backend tính sẵn. */
+  stats: { pending: number; revenue: number };
 }
 
 export interface ListOrdersParams {
