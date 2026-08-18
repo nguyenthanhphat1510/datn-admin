@@ -44,7 +44,7 @@ export interface DimChunk {
   updatedAt: string;
 }
 
-/** Toàn cảnh 5 dấu hiệu của một bệnh — dấu hiệu chưa có thì `chunk` là null. */
+/** Toàn cảnh 4 dấu hiệu của một bệnh — dấu hiệu chưa có thì `chunk` là null. */
 export interface DiseaseDims {
   diseaseSlug: string;
   diseaseName: string;

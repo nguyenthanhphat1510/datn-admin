@@ -294,8 +294,14 @@ export default function ProductFormModal({
                       onChange={(v) => {
                         field.onChange(v);
                         // Đổi danh mục → reset danh mục con (con cũ có thể không
-                        // còn thuộc danh mục mới)
-                        setValue('subcategoryId', '', { shouldValidate: true });
+                        // còn thuộc danh mục mới).
+                        //
+                        // KHÔNG dùng `shouldValidate: true` ở đây: vừa reset về
+                        // rỗng mà validate ngay thì schema `min(1)` fail liền,
+                        // hiện đỏ "Hãy chọn danh mục con" trong khi người dùng
+                        // mới chọn xong danh mục CHA và chưa kịp đụng vào ô con.
+                        // Lỗi đó vẫn hiện đúng lúc bấm Lưu.
+                        setValue('subcategoryId', '');
                       }}
                       placeholder="Chọn danh mục"
                       options={categories.map((c) => ({

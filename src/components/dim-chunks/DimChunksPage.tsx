@@ -121,7 +121,7 @@ export default function DimChunksPage() {
             </span>
           </h1>
           <p className="mt-1 max-w-2xl text-sm text-gray-500">
-            Mỗi bệnh được tả theo 5 dấu hiệu cố định. Chatbot so mô tả của người
+            Mỗi bệnh được tả theo {DISEASE_DIMS.length} dấu hiệu cố định. Chatbot so mô tả của người
             dùng với từng dấu hiệu để chấm điểm, nên ở cùng một dấu hiệu thì các
             bệnh phải viết khác nhau rõ rệt.
           </p>
@@ -145,7 +145,7 @@ export default function DimChunksPage() {
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <StatCard
-          label="Bệnh đủ 5 dấu hiệu"
+          label={`Bệnh đủ ${DISEASE_DIMS.length} dấu hiệu`}
           value={dayDu}
           hint={`/ ${data.length} bệnh`}
           tone="active"
@@ -211,7 +211,7 @@ export default function DimChunksPage() {
           </p>
           <p className="text-xs text-gray-400">
             {data.length === 0
-              ? 'Tạo bệnh ở trang "Bệnh lúa" trước, rồi quay lại đây khai báo 5 dấu hiệu'
+              ? `Tạo bệnh ở trang "Bệnh lúa" trước, rồi quay lại đây khai báo ${DISEASE_DIMS.length} dấu hiệu`
               : 'Thử từ khóa khác'}
           </p>
         </div>
@@ -233,7 +233,7 @@ export default function DimChunksPage() {
                 </div>
                 {d.missingDims.length === 0 ? (
                   <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700">
-                    Đủ 5 dấu hiệu
+                    Đủ {DISEASE_DIMS.length} dấu hiệu
                   </span>
                 ) : (
                   <span
@@ -243,7 +243,7 @@ export default function DimChunksPage() {
                     className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-semibold text-amber-700"
                   >
                     <IAlert />
-                    Thiếu {d.missingDims.length}/5 dấu hiệu
+                    Thiếu {d.missingDims.length}/{DISEASE_DIMS.length} dấu hiệu
                   </span>
                 )}
               </header>

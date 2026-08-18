@@ -59,12 +59,24 @@ export default function DiseaseFormModal({ disease, onClose, onSaved }: Props) {
   const [symptoms, setSymptoms] = useState<string[]>(disease?.symptoms ?? []);
   const [symptomInput, setSymptomInput] = useState('');
 
-  // Đặc trưng nhận dạng (keyFeatures) — 3 chiều chatbot ghép thành query khi người
-  // dùng bấm thẻ đối chiếu, + giai đoạn chỉ để hiển thị. Quản lý ngoài rhf cho gọn.
-  const [viTri, setViTri] = useState(disease?.keyFeatures?.viTri ?? '');
-  const [hinhDang, setHinhDang] = useState(disease?.keyFeatures?.hinhDang ?? '');
-  const [mauSac, setMauSac] = useState(disease?.keyFeatures?.mauSac ?? '');
-  const [giaiDoan, setGiaiDoan] = useState(disease?.keyFeatures?.giaiDoan ?? '');
+  /**
+   * ĐANG TẠM ẨN khỏi form (yêu cầu 2026-08-18): 4 ô nhập `keyFeatures`.
+   *
+   * ⚠️ Ẩn ô nhập KHÔNG có nghĩa là trường này vô hại. Chatbot vẫn dùng
+   * `keyFeatures` để dựng THẺ BỆNH cho người dùng đối chiếu, và
+   * `ChatbotService.toDiseaseChoices` LỌC BỎ bệnh nào thiếu viTri/hinhDang/mauSac
+   * — bệnh không có đủ 3 chiều đó thì không bao giờ hiện thẻ.
+   *
+   * Vì vậy form KHÔNG gửi `keyFeatures` nữa (xem `onSubmit`): gửi object rỗng sẽ
+   * XÓA MẤT đặc trưng của 5 bệnh cũ mỗi lần admin sửa một việc không liên quan.
+   * Bỏ hẳn khỏi payload = backend giữ nguyên giá trị đang có trong DB.
+   *
+   * Bệnh MỚI thêm sẽ chưa có keyFeatures → chưa hiện được thẻ. Sinh bằng
+   * `backend/scripts/extract-disease-key-features.ts` (script bỏ qua bệnh đã có).
+   *
+   * Muốn hiện lại form: bỏ comment khối JSX "Đặc trưng nhận dạng" bên dưới và
+   * trả `keyFeatures` vào payload trong `onSubmit`.
+   */
 
   // Thuốc gợi ý: danh sách product để chọn + tập id đã chọn
   const [products, setProducts] = useState<Product[]>([]);
@@ -146,21 +158,15 @@ export default function DiseaseFormModal({ disease, onClose, onSaved }: Props) {
     setSubmitting(true);
     setSubmitError(null);
     try {
-      // Gộp 4 chiều đặc trưng; chỉ giữ chiều có nhập. Cả 4 rỗng → gửi undefined
-      // để không lưu object rỗng vô nghĩa.
-      const kf = {
-        ...(viTri.trim() ? { viTri: viTri.trim() } : {}),
-        ...(hinhDang.trim() ? { hinhDang: hinhDang.trim() } : {}),
-        ...(mauSac.trim() ? { mauSac: mauSac.trim() } : {}),
-        ...(giaiDoan.trim() ? { giaiDoan: giaiDoan.trim() } : {}),
-      };
-
+      // `keyFeatures` CỐ TÌNH không có trong payload — form đang tạm ẩn 4 ô đó.
+      // Không gửi = backend giữ nguyên giá trị cũ trong DB (thẻ bệnh của các bệnh
+      // đã có đặc trưng vẫn chạy). Gửi undefined cũng được, nhưng bỏ hẳn thì rõ
+      // ý hơn: form này không còn là nơi quản lý keyFeatures nữa.
       const payload = {
         name: values.name,
         slug: values.slug?.trim() || undefined,
         description: values.description?.trim() || undefined,
         symptoms,
-        keyFeatures: Object.keys(kf).length > 0 ? kf : undefined,
         recommendedProductIds: selectedProductIds,
       };
 
@@ -289,7 +295,16 @@ export default function DiseaseFormModal({ disease, onClose, onSaved }: Props) {
               </p>
             </FormField>
 
-            {/* Đặc trưng nhận dạng (keyFeatures) — thẻ đối chiếu của chatbot */}
+            {/*
+              ĐANG TẠM ẨN (2026-08-18): khối "Đặc trưng nhận dạng" (keyFeatures).
+
+              Dữ liệu trong DB VẪN GIỮ NGUYÊN và chatbot vẫn dùng để dựng thẻ bệnh
+              — chỉ gỡ ô nhập khỏi form. `onSubmit` cũng đã bỏ `keyFeatures` khỏi
+              payload để lần sửa bệnh nào cũng không đụng tới giá trị cũ.
+
+              Bật lại: bỏ comment khối này, khai báo lại 4 state ở đầu component
+              (viTri/hinhDang/mauSac/giaiDoan) và trả `keyFeatures` vào payload.
+
             <FormField label="Đặc trưng nhận dạng (thẻ đối chiếu chatbot)">
               <div className="grid grid-cols-1 gap-2.5 rounded-lg border border-gray-300 bg-gray-50/60 p-3 sm:grid-cols-2">
                 <label className="block">
@@ -343,6 +358,7 @@ export default function DiseaseFormModal({ disease, onClose, onSaved }: Props) {
                 dùng bấm thẻ; giai đoạn chỉ để hiển thị.
               </p>
             </FormField>
+            */}
 
             <FormField label="Mô tả / nguyên nhân" error={errors.description?.message}>
               <textarea
